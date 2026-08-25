@@ -37,6 +37,7 @@ app.*.symbols
 *.ipa
 release/
 v10.apk
+!AttendX-v14.0-Release.apk
 !AttendX-v13.0-Release.apk
 !AttendX-v12.0-Release.apk
 !AttendX-v11.0-Release.apk
