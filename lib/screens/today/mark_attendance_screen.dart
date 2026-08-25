@@ -189,6 +189,18 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
     );
   }
 
+  void _previousDay() {
+    setState(() {
+      _selectedDate = _selectedDate.subtract(const Duration(days: 1));
+    });
+  }
+
+  void _nextDay() {
+    setState(() {
+      _selectedDate = _selectedDate.add(const Duration(days: 1));
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final model = AttendXScope.of(context);
@@ -197,55 +209,103 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
 
     return PageFrame(
       children: [
-        // Top row: date + overall stats
+        // Top row: date with prev/next arrows + overall stats + add extra lecture
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 2),
           child: Row(
             children: [
               Expanded(
-                child: GestureDetector(
-                  onTap: () async {
-                    final date = await showDialog<DateTime>(
-                      context: context,
-                      builder: (ctx) => AttendXCalendarDialog(
-                        initialDate: _selectedDate,
-                        model: model,
-                      ),
-                    );
-                    if (date != null) setState(() => _selectedDate = date);
-                  },
-                  child: Text(
-                    _formatDate(_selectedDate),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppPalette.ink,
-                          fontWeight: FontWeight.w700,
+                child: Row(
+                  children: [
+                    // Previous day button
+                    GestureDetector(
+                      onTap: _previousDay,
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppPalette.glassLine),
                         ),
-                  ),
+                        child: const Icon(CupertinoIcons.chevron_left, color: AppPalette.ink, size: 14),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    // Clickable date text
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () async {
+                          final date = await showDialog<DateTime>(
+                            context: context,
+                            builder: (ctx) => AttendXCalendarDialog(
+                              initialDate: _selectedDate,
+                              model: model,
+                            ),
+                          );
+                          if (date != null) setState(() => _selectedDate = date);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          color: Colors.transparent,
+                          child: Text(
+                            _formatDate(_selectedDate),
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  color: AppPalette.ink,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13,
+                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    // Next day button
+                    GestureDetector(
+                      onTap: _nextDay,
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppPalette.glassLine),
+                        ),
+                        child: const Icon(CupertinoIcons.chevron_right, color: AppPalette.ink, size: 14),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              const SizedBox(width: 8),
               GlassCard(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                radius: 14,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                radius: 12,
                 child: Text(
-                  '${model.overallAttendance.toStringAsFixed(2)} | ${model.minimumAttendance.round()}',
+                  '${model.overallAttendance.toStringAsFixed(1)} | ${model.minimumAttendance.round()}',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         color: AppPalette.ink,
                         fontWeight: FontWeight.w800,
+                        fontSize: 12,
                       ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               GestureDetector(
                 onTap: () => _showAddExtraLectureDialog(context, model),
                 child: Container(
-                  width: 32,
-                  height: 32,
+                  width: 30,
+                  height: 30,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: AppPalette.glassLine),
                   ),
-                  child: const Icon(CupertinoIcons.plus, color: AppPalette.ink, size: 18),
+                  child: const Icon(CupertinoIcons.plus, color: AppPalette.ink, size: 17),
                 ),
               ),
             ],

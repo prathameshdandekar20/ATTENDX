@@ -32,10 +32,15 @@ coverage/
 
 # Symbols & Binaries
 app.*.symbols
-*.apk
 *.aab
 *.app
 *.ipa
+release/
+v10.apk
+!AttendX-v13.0-Release.apk
+!AttendX-v12.0-Release.apk
+!AttendX-v11.0-Release.apk
+!AttendX-v10.0-Release.apk
 
 # Android
 android/.gradle/
