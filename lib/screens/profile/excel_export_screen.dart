@@ -75,13 +75,16 @@ class _ExcelExportScreenState extends State<ExcelExportScreen> {
       setState(() => _lastExportPath = file);
 
       // Trigger standard system Share Sheet (WhatsApp, Instagram, Drive, etc.)
+      if (!mounted) return;
       final box = context.findRenderObject() as RenderBox?;
       final origin = box != null ? (box.localToGlobal(Offset.zero) & box.size) : null;
-      await Share.shareXFiles(
-        [XFile(file)],
-        text: '📊 AttendX Attendance Report (Semester ${model.currentSemester})',
-        subject: 'AttendX Semester ${model.currentSemester} Attendance CSV',
-        sharePositionOrigin: origin,
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file)],
+          text: '📊 AttendX Attendance Report (Semester ${model.currentSemester})',
+          subject: 'AttendX Semester ${model.currentSemester} Attendance CSV',
+          sharePositionOrigin: origin,
+        ),
       );
 
       if (mounted) {
@@ -127,39 +130,39 @@ class _ExcelExportScreenState extends State<ExcelExportScreen> {
                     'Export Attendance Records',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
-                          color: AppPalette.ink,
+                          color: model.themePalette.textPrimary,
                         ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Export detailed semester-wise and CT breakdown reports as standard CSV files compatible with Excel, Google Sheets, and other spreadsheet apps.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.slate),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: model.themePalette.textSecondary),
                   ),
                   const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.5),
+                      color: model.themePalette.isDark ? const Color(0xFF1A1610) : Colors.white.withValues(alpha: 0.8),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppPalette.glassLine),
+                      border: Border.all(color: model.themePalette.cardBorder),
                     ),
                     child: Row(
                       children: [
-                        const Icon(CupertinoIcons.doc_text_fill, color: AppPalette.green, size: 22),
+                        Icon(CupertinoIcons.doc_text_fill, color: model.themePalette.accent, size: 22),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             'AttendX_Semester_${model.currentSemester}_Report.csv',
-                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppPalette.ink),
+                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: model.themePalette.textPrimary),
                           ),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: AppPalette.green.withValues(alpha: 0.12),
+                            color: model.themePalette.accent.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text('CSV / Excel', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppPalette.green)),
+                          child: Text('CSV / Excel', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: model.themePalette.accent)),
                         ),
                       ],
                     ),
@@ -176,21 +179,21 @@ class _ExcelExportScreenState extends State<ExcelExportScreen> {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: AppPalette.green.withValues(alpha: 0.15),
+                      color: model.themePalette.accent.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(CupertinoIcons.share, color: AppPalette.green, size: 28),
+                    child: Icon(CupertinoIcons.share, color: model.themePalette.accent, size: 28),
                   ),
                   const SizedBox(height: 14),
                   Text(
                     'Semester ${model.currentSemester} Report',
-                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: AppPalette.ink),
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: model.themePalette.textPrimary),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     'Includes all ${model.subjects.length} subjects, CT breakdowns, and date-wise attendance logs.',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 12, color: AppPalette.slate),
+                    style: TextStyle(fontSize: 12, color: model.themePalette.textSecondary),
                   ),
                   const SizedBox(height: 18),
                   SizedBox(
@@ -198,10 +201,10 @@ class _ExcelExportScreenState extends State<ExcelExportScreen> {
                     child: FilledButton.icon(
                       onPressed: _isExporting ? null : _exportAndShareCsv,
                       icon: _isExporting
-                          ? const SizedBox(
+                          ? SizedBox(
                               width: 16,
                               height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: model.themePalette.isDark ? Colors.black : Colors.white),
                             )
                           : const Icon(CupertinoIcons.share_up, size: 18),
                       label: Text(_isExporting ? 'Generating CSV...' : 'Export & Share CSV'),
@@ -220,7 +223,7 @@ class _ExcelExportScreenState extends State<ExcelExportScreen> {
                     Text(
                       _lastExportPath!,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppPalette.green,
+                            color: model.themePalette.accent,
                             fontWeight: FontWeight.w600,
                           ),
                     ),
@@ -245,13 +248,13 @@ class _ExcelExportScreenState extends State<ExcelExportScreen> {
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Row(
                         children: [
-                          const Icon(CupertinoIcons.checkmark_seal_fill,
-                              color: AppPalette.green, size: 18),
+                          Icon(CupertinoIcons.checkmark_seal_fill,
+                              color: model.themePalette.accent, size: 18),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               item,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppPalette.ink),
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: model.themePalette.textPrimary),
                             ),
                           ),
                         ],

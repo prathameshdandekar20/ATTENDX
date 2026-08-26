@@ -1,10 +1,113 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import '../themes/palette.dart';
 import '../models/attendx_model.dart';
 import '../models/subject.dart';
 import '../models/attendance_log.dart';
 
+class AppHaptics {
+  static void light() => HapticFeedback.lightImpact();
+  static void medium() => HapticFeedback.mediumImpact();
+  static void selection() => HapticFeedback.selectionClick();
+  static void heavy() => HapticFeedback.heavyImpact();
+}
+
+class BouncyTap extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+  final double scaleDown;
+  final Duration duration;
+
+  const BouncyTap({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.scaleDown = 0.95,
+    this.duration = const Duration(milliseconds: 110),
+  });
+
+  @override
+  State<BouncyTap> createState() => _BouncyTapState();
+}
+
+class _BouncyTapState extends State<BouncyTap> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        AppHaptics.selection();
+        widget.onTap?.call();
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedScale(
+        scale: _pressed ? widget.scaleDown : 1.0,
+        duration: widget.duration,
+        curve: Curves.easeInOutCubic,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+class AnimatedPercentageText extends StatelessWidget {
+  final double percentage;
+  final TextStyle? style;
+  final int fractionDigits;
+
+  const AnimatedPercentageText({
+    super.key,
+    required this.percentage,
+    this.style,
+    this.fractionDigits = 1,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: percentage),
+      duration: const Duration(milliseconds: 550),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Text(
+          '${value.toStringAsFixed(fractionDigits)}%',
+          style: style,
+        );
+      },
+    );
+  }
+}
+
+class AnimatedCountText extends StatelessWidget {
+  final int count;
+  final TextStyle? style;
+
+  const AnimatedCountText({
+    super.key,
+    required this.count,
+    this.style,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: count.toDouble()),
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Text(
+          '${value.round()}',
+          style: style,
+        );
+      },
+    );
+  }
+}
 
 class GradientScaffold extends StatelessWidget {
   const GradientScaffold({super.key, required this.child});
@@ -13,17 +116,22 @@ class GradientScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppThemePalette palette = AppThemePalette.obsidianGold;
+    try {
+      final scope = context.dependOnInheritedWidgetOfExactType<AttendXScope>();
+      if (scope?.notifier != null) {
+        palette = scope!.notifier!.themePalette;
+      }
+    } catch (_) {}
+
     return Scaffold(
+      backgroundColor: palette.isDark ? AppPalette.obsidianBlack : null,
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFE1F7EF),
-              Color(0xFFF8FBF4),
-              Color(0xFFF2F6DD),
-            ],
+            colors: palette.scaffoldGradient,
           ),
         ),
         child: Center(
@@ -72,7 +180,7 @@ class PageFrame extends StatelessWidget {
   }
 }
 
-class GlassCard extends StatelessWidget {
+class GlassCard extends StatefulWidget {
   const GlassCard({
     super.key,
     required this.child,
@@ -81,6 +189,7 @@ class GlassCard extends StatelessWidget {
     this.onTap,
     this.borderOpacity = 0.64,
     this.blur = 22,
+    this.glowColor,
   });
 
   final Widget child;
@@ -89,35 +198,65 @@ class GlassCard extends StatelessWidget {
   final VoidCallback? onTap;
   final double borderOpacity;
   final double blur;
+  final Color? glowColor;
+
+  @override
+  State<GlassCard> createState() => _GlassCardState();
+}
+
+class _GlassCardState extends State<GlassCard> {
+  bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = Colors.white.withValues(alpha: borderOpacity);
-    final fill = Colors.white.withValues(alpha: 0.68);
+    AppThemePalette palette = AppThemePalette.obsidianGold;
+    try {
+      final scope = context.dependOnInheritedWidgetOfExactType<AttendXScope>();
+      if (scope?.notifier != null) {
+        palette = scope!.notifier!.themePalette;
+      }
+    } catch (_) {}
+
+    final borderColor = palette.isDark
+        ? palette.cardBorder
+        : Colors.white.withValues(alpha: widget.borderOpacity);
+    final fill = palette.cardFill;
 
     final content = Container(
-      padding: padding,
+      padding: widget.padding,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: borderColor),
+        borderRadius: BorderRadius.circular(widget.radius),
+        border: Border.all(color: borderColor, width: 1.0),
         color: fill,
         boxShadow: [
           BoxShadow(
-            color: AppPalette.greenDark.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 10),
+            color: widget.glowColor ?? palette.cardShadow,
+            blurRadius: palette.isDark ? 16 : 16,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: child,
+      child: widget.child,
     );
 
+    if (widget.onTap == null) {
+      return RepaintBoundary(child: content);
+    }
+
     return RepaintBoundary(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(radius),
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) {
+          setState(() => _pressed = false);
+          AppHaptics.light();
+          widget.onTap?.call();
+        },
+        onTapCancel: () => setState(() => _pressed = false),
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedScale(
+          scale: _pressed ? 0.97 : 1.0,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeInOutCubic,
           child: content,
         ),
       ),
@@ -421,8 +560,9 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
+        Flexible(
           child: Text(
             title,
             style: Theme.of(context)
@@ -624,22 +764,28 @@ InputDecoration setupDecoration(
   String label,
   IconData icon,
 ) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final accent = isDark ? AppPalette.gold : AppPalette.green;
+  final border = isDark ? const Color(0x38E5B842) : Colors.white.withValues(alpha: 0.7);
+  final fill = isDark ? const Color(0xFF18140E) : Colors.white.withValues(alpha: 0.72);
+
   return InputDecoration(
-    prefixIcon: Icon(icon, color: AppPalette.green),
+    prefixIcon: Icon(icon, color: accent),
     labelText: label,
+    labelStyle: TextStyle(color: isDark ? const Color(0xFFB8AE98) : AppPalette.slate),
     filled: true,
-    fillColor: Colors.white.withValues(alpha: 0.72),
+    fillColor: fill,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(22),
-      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.7)),
+      borderSide: BorderSide(color: border),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(22),
-      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.7)),
+      borderSide: BorderSide(color: border),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(22),
-      borderSide: const BorderSide(color: AppPalette.green, width: 1.4),
+      borderSide: BorderSide(color: accent, width: 1.4),
     ),
   );
 }
@@ -921,22 +1067,30 @@ class GlassTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = isDark ? AppPalette.gold : AppPalette.green;
+    final border = isDark ? const Color(0x38E5B842) : Colors.white.withValues(alpha: 0.5);
+    final fill = isDark ? const Color(0xFF18140E) : Colors.white.withValues(alpha: 0.58);
+
     return TextFormField(
       initialValue: value,
       decoration: InputDecoration(
-        prefixIcon: Icon(icon),
+        prefixIcon: Icon(icon, color: accent),
         labelText: label,
+        labelStyle: TextStyle(color: isDark ? const Color(0xFFB8AE98) : AppPalette.slate),
         filled: true,
-        fillColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.white.withValues(alpha: 0.06)
-            : Colors.white.withValues(alpha: 0.58),
+        fillColor: fill,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(22),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
+          borderSide: BorderSide(color: border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(22),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
+          borderSide: BorderSide(color: border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(22),
+          borderSide: BorderSide(color: accent, width: 1.4),
         ),
       ),
     );
@@ -1111,30 +1265,40 @@ class BackupRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppThemePalette palette = AppThemePalette.obsidianGold;
+    try {
+      final scope = context.dependOnInheritedWidgetOfExactType<AttendXScope>();
+      if (scope?.notifier != null) {
+        palette = scope!.notifier!.themePalette;
+      }
+    } catch (_) {}
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          const Icon(CupertinoIcons.doc_text, color: AppPalette.green),
+          Icon(CupertinoIcons.doc_text, color: palette.accent),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(backup.name, style: Theme.of(context).textTheme.labelLarge),
+                Text(backup.name, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: palette.textPrimary)),
                 Text(
                   backup.date,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.55),
+                        color: palette.textSecondary,
                       ),
                 ),
               ],
             ),
           ),
-          Text(backup.size, style: Theme.of(context).textTheme.labelMedium),
+          Text(
+            backup.size,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: palette.textMuted,
+                ),
+          ),
         ],
       ),
     );
@@ -1149,23 +1313,36 @@ Future<bool> showConfirmDialog(
   String cancelLabel = 'Cancel',
   bool isDestructive = true,
 }) async {
+  AppThemePalette palette = AppThemePalette.obsidianGold;
+  try {
+    final scope = context.dependOnInheritedWidgetOfExactType<AttendXScope>();
+    if (scope?.notifier != null) {
+      palette = scope!.notifier!.themePalette;
+    }
+  } catch (_) {}
+
+  final isDark = palette.isDark;
+
   final result = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(color: isDark ? palette.cardBorder : Colors.transparent),
+      ),
+      backgroundColor: isDark ? const Color(0xFF16130E) : Colors.white,
       surfaceTintColor: Colors.transparent,
       title: Text(
         title,
         style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
-              color: AppPalette.ink,
+              color: palette.textPrimary,
               fontWeight: FontWeight.w800,
             ),
       ),
       content: Text(
         message,
         style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
-              color: AppPalette.slate,
+              color: palette.textSecondary,
             ),
       ),
       actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -1173,14 +1350,14 @@ Future<bool> showConfirmDialog(
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
           style: TextButton.styleFrom(
-            foregroundColor: AppPalette.slate,
+            foregroundColor: palette.textSecondary,
           ),
           child: Text(cancelLabel),
         ),
         FilledButton(
           style: FilledButton.styleFrom(
-            backgroundColor: isDestructive ? AppPalette.red : AppPalette.green,
-            foregroundColor: Colors.white,
+            backgroundColor: isDestructive ? AppPalette.red : (isDark ? palette.accent : AppPalette.green),
+            foregroundColor: isDestructive ? Colors.white : (isDark ? Colors.black : Colors.white),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
             ),

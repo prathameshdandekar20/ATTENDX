@@ -1,7 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:attendx/models/attendx_model.dart';
-import 'package:attendx/models/subject.dart';
 import 'package:attendx/models/timetable_entry.dart';
 
 void main() {
@@ -183,6 +182,73 @@ void main() {
       model.setSemester(1);
       expect(model.subjects.length, 1);
       expect(model.subjects[0].name, 'History');
+    });
+
+    test('deep copy isolation: mutating active state in one semester does not corrupt other semesters', () {
+      final model = AttendXModel.blank();
+      model.completeSetup(
+        name: 'DeepTest',
+        semester: 1,
+        minimum: 75,
+        subjectNames: ['Math'],
+      );
+
+      // Sem 1: Add timetable, daily records, extra lectures
+      model.addTimetableEntry('Monday', const TimetableEntry(subjectName: 'Math', time: '10:00 AM', room: 'R1'));
+      final today = DateTime.now();
+      model.markAttendance(model.subjects[0], true, date: today);
+      model.addExtraLecture(date: today, subject: model.subjects[0]);
+
+      // Switch to Sem 2
+      model.setSemester(2);
+      model.addSubject(name: 'Physics', code: 'PHY101');
+      model.addTimetableEntry('Monday', const TimetableEntry(subjectName: 'Physics', time: '11:00 AM', room: 'R3'));
+      model.markAttendance(model.subjects[0], false, date: today);
+
+      // Verify Sem 2 state
+      expect(model.subjects[0].name, 'Physics');
+      expect(model.weeklyTimetable['Monday']!.length, 1);
+      expect(model.weeklyTimetable['Monday']![0].subjectName, 'Physics');
+
+      // Switch back to Sem 1 and check complete isolation
+      model.setSemester(1);
+      expect(model.subjects.length, 1);
+      expect(model.subjects[0].name, 'Math');
+      expect(model.subjects[0].present, 1);
+      expect(model.weeklyTimetable['Monday']!.length, 1);
+      expect(model.weeklyTimetable['Monday']![0].subjectName, 'Math');
+      expect(model.extraLectures[model.dateKey(today)]?.length, 1);
+      expect(model.extraLectures[model.dateKey(today)]?[0].subjectName, 'Math');
+
+      // Reset Attendance in Sem 1 should NOT affect Sem 2
+      model.resetAttendance();
+      expect(model.subjects[0].present, 0);
+      expect(model.subjects[0].total, 0);
+
+      model.setSemester(2);
+      expect(model.subjects.length, 1);
+      expect(model.subjects[0].name, 'Physics');
+      expect(model.subjects[0].present, 0);
+      expect(model.subjects[0].total, 1); // 1 absent still intact!
+    });
+
+    test('theme selection and JSON persistence works cleanly', () {
+      final model = AttendXModel.blank();
+      expect(model.selectedTheme, 'obsidian_gold');
+      expect(model.isDarkTheme, true);
+      expect(model.themePalette.displayName, 'Obsidian Gold');
+
+      model.setTheme('emerald_mint');
+      expect(model.selectedTheme, 'emerald_mint');
+      expect(model.isDarkTheme, false);
+      expect(model.themePalette.displayName, 'Emerald Mint');
+
+      final jsonString = model.toJsonString();
+      final restored = AttendXModel.blank();
+      restored.importFromJsonString(jsonString);
+
+      expect(restored.selectedTheme, 'emerald_mint');
+      expect(restored.isDarkTheme, false);
     });
   });
 }

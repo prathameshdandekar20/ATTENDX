@@ -23,99 +23,160 @@ import 'themes/palette.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (!kIsWeb && Platform.isAndroid) {
-    try {
-      await FlutterDisplayMode.setHighRefreshRate();
-    } catch (_) {}
-  }
   runApp(AttendXApp(model: await AttendXModel.load()));
 }
 
-class AttendXApp extends StatelessWidget {
+class AttendXApp extends StatefulWidget {
   const AttendXApp({super.key, required this.model});
 
   final AttendXModel model;
 
   @override
+  State<AttendXApp> createState() => _AttendXAppState();
+}
+
+class _AttendXAppState extends State<AttendXApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _unlockHighRefreshRate();
+    });
+  }
+
+  Future<void> _unlockHighRefreshRate() async {
+    if (!kIsWeb && Platform.isAndroid) {
+      try {
+        final modes = await FlutterDisplayMode.supported;
+        if (modes.isNotEmpty) {
+          final highest = modes.reduce(
+            (curr, next) => curr.refreshRate > next.refreshRate ? curr : next,
+          );
+          await FlutterDisplayMode.setPreferredMode(highest);
+        }
+      } catch (_) {
+        try {
+          await FlutterDisplayMode.setHighRefreshRate();
+        } catch (_) {}
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final lightScheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF88B83E),
-      brightness: Brightness.light,
-    );
     return AttendXScope(
-      model: model,
-      child: MaterialApp(
-        title: 'AttendX',
-        debugShowCheckedModeBanner: false,
-        themeMode: ThemeMode.light,
-        theme: _theme(lightScheme),
-        home: const _RootDecider(),
-        onGenerateRoute: (settings) {
-          switch (settings.name) {
-            case SplashScreen.route:
-              return PremiumRoute(child: const SplashScreen());
-            case OnboardingScreen.route:
-              return PremiumRoute(child: const OnboardingScreen());
-            case TimetableScreen.route:
-              return PremiumRoute(child: const TimetableScreen());
-            case StatisticsScreen.route:
-              return PremiumRoute(child: const StatisticsScreen());
-            case CtTrackingScreen.route:
-              return PremiumRoute(child: const CtTrackingScreen());
-            case BunkCalculatorScreen.route:
-              return PremiumRoute(child: const BunkCalculatorScreen());
-            case BackupRestoreScreen.route:
-              return PremiumRoute(child: const BackupRestoreScreen());
-            case ExcelExportScreen.route:
-              return PremiumRoute(child: const ExcelExportScreen());
-            case SettingsScreen.route:
-              return PremiumRoute(child: const SettingsScreen());
-            case ProfileScreen.route:
-              return PremiumRoute(child: const ProfileScreen());
-            case AddEditSubjectScreen.route:
-              return PremiumRoute(child: const AddEditSubjectScreen());
-            default:
-              return null;
-          }
+      model: widget.model,
+      child: AnimatedBuilder(
+        animation: widget.model,
+        builder: (context, _) {
+          final palette = widget.model.themePalette;
+          final scheme = palette.isDark
+              ? ColorScheme.dark(
+                  primary: palette.accent,
+                  secondary: palette.accentSecondary,
+                  surface: palette.navBackground,
+                  onSurface: palette.textPrimary,
+                  outline: palette.cardBorder,
+                )
+              : ColorScheme.fromSeed(
+                  seedColor: const Color(0xFF88B83E),
+                  brightness: Brightness.light,
+                );
+
+          return MaterialApp(
+            title: 'AttendX',
+            debugShowCheckedModeBanner: false,
+            themeMode: palette.isDark ? ThemeMode.dark : ThemeMode.light,
+            theme: _theme(scheme, palette),
+            darkTheme: _theme(scheme, palette),
+            home: const _RootDecider(),
+            onGenerateRoute: (settings) {
+              switch (settings.name) {
+                case SplashScreen.route:
+                  return PremiumRoute(child: const SplashScreen());
+                case OnboardingScreen.route:
+                  return PremiumRoute(child: const OnboardingScreen());
+                case TimetableScreen.route:
+                  return PremiumRoute(child: const TimetableScreen());
+                case StatisticsScreen.route:
+                  return PremiumRoute(child: const StatisticsScreen());
+                case CtTrackingScreen.route:
+                  return PremiumRoute(child: const CtTrackingScreen());
+                case BunkCalculatorScreen.route:
+                  return PremiumRoute(child: const BunkCalculatorScreen());
+                case BackupRestoreScreen.route:
+                  return PremiumRoute(child: const BackupRestoreScreen());
+                case ExcelExportScreen.route:
+                  return PremiumRoute(child: const ExcelExportScreen());
+                case SettingsScreen.route:
+                  return PremiumRoute(child: const SettingsScreen());
+                case ProfileScreen.route:
+                  return PremiumRoute(child: const ProfileScreen());
+                case AddEditSubjectScreen.route:
+                  return PremiumRoute(child: const AddEditSubjectScreen());
+                default:
+                  return null;
+              }
+            },
+          );
         },
       ),
     );
   }
 
-  ThemeData _theme(ColorScheme scheme) {
+  ThemeData _theme(ColorScheme scheme, AppThemePalette palette) {
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
       scaffoldBackgroundColor: Colors.transparent,
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: AppPalette.green,
-          foregroundColor: Colors.white,
+          backgroundColor: palette.isDark ? palette.accent : AppPalette.green,
+          foregroundColor: palette.isDark ? Colors.black : Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),
+          textStyle: const TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppPalette.greenDark,
-          side: const BorderSide(color: AppPalette.glassLine),
+          foregroundColor: palette.isDark ? palette.accent : AppPalette.greenDark,
+          side: BorderSide(color: palette.isDark ? palette.cardBorder : AppPalette.glassLine),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),
         ),
       ),
-      textTheme: const TextTheme(
-        displayLarge: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 0),
-        displayMedium: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 0),
-        headlineLarge: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 0),
-        headlineMedium: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 0),
-        titleLarge: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 0),
-        titleMedium: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0),
-        titleSmall: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0),
-        bodyLarge: TextStyle(fontWeight: FontWeight.w500, letterSpacing: 0),
-        bodyMedium: TextStyle(fontWeight: FontWeight.w500, letterSpacing: 0),
-        labelLarge: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0),
+      textTheme: TextTheme(
+        displayLarge: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 0, color: palette.textPrimary),
+        displayMedium: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 0, color: palette.textPrimary),
+        headlineLarge: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 0, color: palette.textPrimary),
+        headlineMedium: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 0, color: palette.textPrimary),
+        titleLarge: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 0, color: palette.textPrimary),
+        titleMedium: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0, color: palette.textPrimary),
+        titleSmall: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0, color: palette.textPrimary),
+        bodyLarge: TextStyle(fontWeight: FontWeight.w500, letterSpacing: 0, color: palette.textPrimary),
+        bodyMedium: TextStyle(fontWeight: FontWeight.w500, letterSpacing: 0, color: palette.textSecondary),
+        bodySmall: TextStyle(fontWeight: FontWeight.w500, letterSpacing: 0, color: palette.textMuted),
+        labelLarge: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0, color: palette.textPrimary),
+        labelSmall: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0, color: palette.textMuted),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: palette.isDark ? const Color(0xFF16130E) : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: palette.cardBorder),
+        ),
+        titleTextStyle: TextStyle(
+          color: palette.textPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+        ),
+        contentTextStyle: TextStyle(
+          color: palette.textSecondary,
+          fontSize: 14,
+        ),
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {

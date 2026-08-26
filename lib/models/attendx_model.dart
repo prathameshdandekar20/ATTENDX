@@ -176,6 +176,18 @@ class AttendXModel extends ChangeNotifier {
   String studentName = '';
   int currentSemester = 1;
   double minimumAttendance = 75;
+  String selectedTheme = 'obsidian_gold';
+
+  AppThemePalette get themePalette => AppThemePalette.of(selectedTheme);
+  bool get isDarkTheme => themePalette.isDark;
+
+  void setTheme(String themeId) {
+    if (selectedTheme == themeId) return;
+    selectedTheme = themeId;
+    _save();
+    notifyListeners();
+  }
+
   List<Subject> subjects = [];
   List<AttendanceLog> logs = [];
   /// Weekly timetable: key is weekday name (e.g. 'Monday'), value is list of entries
@@ -198,11 +210,17 @@ class AttendXModel extends ChangeNotifier {
 
   void _syncCurrentSemesterToMap() {
     semestersData[currentSemester] = SemesterData(
-      subjects: List.from(subjects),
-      logs: List.from(logs),
-      weeklyTimetable: Map.from(weeklyTimetable),
-      dailyRecords: Map.from(dailyRecords),
-      extraLectures: Map.from(extraLectures),
+      subjects: subjects.map((s) => s.copyWith()).toList(),
+      logs: logs.map((l) => AttendanceLog(date: l.date, note: l.note, present: l.present)).toList(),
+      weeklyTimetable: weeklyTimetable.map(
+        (day, entries) => MapEntry(day, entries.map((e) => TimetableEntry(subjectName: e.subjectName, time: e.time, room: e.room)).toList()),
+      ),
+      dailyRecords: dailyRecords.map(
+        (date, records) => MapEntry(date, Map<String, String>.from(records)),
+      ),
+      extraLectures: extraLectures.map(
+        (date, entries) => MapEntry(date, entries.map((e) => TimetableEntry(subjectName: e.subjectName, time: e.time, room: e.room)).toList()),
+      ),
       ct1CompletedDate: ct1CompletedDate,
       ct1SnapshotPresent: ct1SnapshotPresent,
       ct1SnapshotTotal: ct1SnapshotTotal,
@@ -216,17 +234,18 @@ class AttendXModel extends ChangeNotifier {
     currentSemester = semester;
     final semData = semestersData[semester];
     if (semData != null) {
-      subjects = List.from(semData.subjects);
-      logs = List.from(semData.logs);
-      weeklyTimetable = Map.from(semData.weeklyTimetable);
-      dailyRecords = Map.from(semData.dailyRecords);
-      extraLectures = Map.from(semData.extraLectures);
-      ct1CompletedDate = semData.ct1CompletedDate;
-      ct1SnapshotPresent = semData.ct1SnapshotPresent;
-      ct1SnapshotTotal = semData.ct1SnapshotTotal;
-      ct2CompletedDate = semData.ct2CompletedDate;
-      ct2SnapshotPresent = semData.ct2SnapshotPresent;
-      ct2SnapshotTotal = semData.ct2SnapshotTotal;
+      final copied = semData.copy();
+      subjects = copied.subjects;
+      logs = copied.logs;
+      weeklyTimetable = copied.weeklyTimetable;
+      dailyRecords = copied.dailyRecords;
+      extraLectures = copied.extraLectures;
+      ct1CompletedDate = copied.ct1CompletedDate;
+      ct1SnapshotPresent = copied.ct1SnapshotPresent;
+      ct1SnapshotTotal = copied.ct1SnapshotTotal;
+      ct2CompletedDate = copied.ct2CompletedDate;
+      ct2SnapshotPresent = copied.ct2SnapshotPresent;
+      ct2SnapshotTotal = copied.ct2SnapshotTotal;
     } else {
       subjects = [];
       logs = [];
@@ -673,26 +692,26 @@ class AttendXModel extends ChangeNotifier {
     currentSemester = 1;
     minimumAttendance = 75;
     subjects = [];
-    logs.clear();
-    weeklyTimetable.clear();
-    dailyRecords.clear();
-    extraLectures.clear();
+    logs = [];
+    weeklyTimetable = {};
+    dailyRecords = {};
+    extraLectures = {};
     ct1CompletedDate = null;
     ct1SnapshotPresent = 0;
     ct1SnapshotTotal = 0;
     ct2CompletedDate = null;
     ct2SnapshotPresent = 0;
     ct2SnapshotTotal = 0;
-    semestersData.clear();
+    semestersData = {};
     _save();
     notifyListeners();
   }
 
   void resetAttendance() {
     subjects = subjects.map((s) => s.copyWith(present: 0, total: 0)).toList();
-    logs.clear();
-    dailyRecords.clear();
-    extraLectures.clear();
+    logs = [];
+    dailyRecords = {};
+    extraLectures = {};
     ct1CompletedDate = null;
     ct1SnapshotPresent = 0;
     ct1SnapshotTotal = 0;
@@ -705,8 +724,8 @@ class AttendXModel extends ChangeNotifier {
   }
 
   void resetSchedule() {
-    weeklyTimetable.clear();
-    extraLectures.clear();
+    weeklyTimetable = {};
+    extraLectures = {};
     _syncCurrentSemesterToMap();
     _save();
     notifyListeners();
@@ -724,17 +743,17 @@ class AttendXModel extends ChangeNotifier {
     subjects = subjectNames.asMap().entries.map((entry) {
       return Subject.blank(entry.value.trim(), entry.key);
     }).toList();
-    logs.clear();
-    weeklyTimetable.clear();
-    dailyRecords.clear();
-    extraLectures.clear();
+    logs = [];
+    weeklyTimetable = {};
+    dailyRecords = {};
+    extraLectures = {};
     ct1CompletedDate = null;
     ct1SnapshotPresent = 0;
     ct1SnapshotTotal = 0;
     ct2CompletedDate = null;
     ct2SnapshotPresent = 0;
     ct2SnapshotTotal = 0;
-    semestersData.clear();
+    semestersData = {};
     _syncCurrentSemesterToMap();
     _save();
     notifyListeners();
@@ -799,7 +818,6 @@ class AttendXModel extends ChangeNotifier {
     if (currentSemester == semester) return;
     _syncCurrentSemesterToMap();
     _loadSemesterFromMap(semester);
-    _syncCurrentSemesterToMap();
     _save();
     notifyListeners();
   }
@@ -976,6 +994,7 @@ class AttendXModel extends ChangeNotifier {
   // ---------- JSON Export / Import ----------
 
   String toJsonString() {
+    _syncCurrentSemesterToMap();
     return const JsonEncoder.withIndent('  ').convert(_toMap());
   }
 
@@ -994,11 +1013,18 @@ class AttendXModel extends ChangeNotifier {
     studentName = other.studentName;
     currentSemester = other.currentSemester;
     minimumAttendance = other.minimumAttendance;
-    subjects = other.subjects;
-    logs = other.logs;
-    weeklyTimetable = other.weeklyTimetable;
-    dailyRecords = other.dailyRecords;
-    extraLectures = other.extraLectures;
+    selectedTheme = other.selectedTheme;
+    subjects = other.subjects.map((s) => s.copyWith()).toList();
+    logs = other.logs.map((l) => AttendanceLog(date: l.date, note: l.note, present: l.present)).toList();
+    weeklyTimetable = other.weeklyTimetable.map(
+      (day, entries) => MapEntry(day, entries.map((e) => TimetableEntry(subjectName: e.subjectName, time: e.time, room: e.room)).toList()),
+    );
+    dailyRecords = other.dailyRecords.map(
+      (date, records) => MapEntry(date, Map<String, String>.from(records)),
+    );
+    extraLectures = other.extraLectures.map(
+      (date, entries) => MapEntry(date, entries.map((e) => TimetableEntry(subjectName: e.subjectName, time: e.time, room: e.room)).toList()),
+    );
     ct1CompletedDate = other.ct1CompletedDate;
     ct1SnapshotPresent = other.ct1SnapshotPresent;
     ct1SnapshotTotal = other.ct1SnapshotTotal;
@@ -1014,11 +1040,11 @@ class AttendXModel extends ChangeNotifier {
   }
 
   Map<String, dynamic> _toMap() {
-    _syncCurrentSemesterToMap();
     return {
       'studentName': studentName,
       'currentSemester': currentSemester,
       'minimumAttendance': minimumAttendance,
+      'selectedTheme': selectedTheme,
       // Backward compatibility top-level fields for current semester:
       'subjects': subjects.map((s) => s.toJson()).toList(),
       'logs': logs.map((l) => l.toJson()).toList(),
@@ -1046,6 +1072,7 @@ class AttendXModel extends ChangeNotifier {
     currentSemester = (data['currentSemester'] as num?)?.toInt() ?? 1;
     minimumAttendance =
         (data['minimumAttendance'] as num?)?.toDouble() ?? 75;
+    selectedTheme = (data['selectedTheme'] as String?) ?? 'obsidian_gold';
 
     semestersData.clear();
     final semRaw = data['semesters'] as Map<String, dynamic>?;

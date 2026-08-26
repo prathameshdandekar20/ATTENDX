@@ -99,6 +99,7 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
     final neededSelected = classesNeeded(currentPresent, currentTotal, model.minimumAttendance);
 
     final canPop = Navigator.canPop(context);
+    final palette = model.themePalette;
 
     return PageFrame(
       children: [
@@ -114,20 +115,20 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: palette.cardFill,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppPalette.glassLine),
+                border: Border.all(color: palette.cardBorder),
               ),
               child: Row(
                 children: [
                   Expanded(
-                    child: GestureDetector(
+                    child: BouncyTap(
                       onTap: () => setState(() => _selectedTab = 0),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 180),
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
-                          color: _selectedTab == 0 ? AppPalette.green : Colors.transparent,
+                          color: _selectedTab == 0 ? palette.accent : Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -136,7 +137,9 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
                             Icon(
                               CupertinoIcons.chart_pie,
                               size: 16,
-                              color: _selectedTab == 0 ? Colors.white : AppPalette.slate,
+                              color: _selectedTab == 0
+                                  ? (palette.isDark ? Colors.black : Colors.white)
+                                  : palette.textSecondary,
                             ),
                             const SizedBox(width: 8),
                             Text(
@@ -144,7 +147,9 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
                               style: TextStyle(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 13,
-                                color: _selectedTab == 0 ? Colors.white : AppPalette.slate,
+                                color: _selectedTab == 0
+                                    ? (palette.isDark ? Colors.black : Colors.white)
+                                    : palette.textSecondary,
                               ),
                             ),
                           ],
@@ -153,13 +158,13 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
                     ),
                   ),
                   Expanded(
-                    child: GestureDetector(
+                    child: BouncyTap(
                       onTap: () => setState(() => _selectedTab = 1),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 180),
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
-                          color: _selectedTab == 1 ? AppPalette.green : Colors.transparent,
+                          color: _selectedTab == 1 ? palette.accent : Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -168,7 +173,9 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
                             Icon(
                               CupertinoIcons.forward,
                               size: 16,
-                              color: _selectedTab == 1 ? Colors.white : AppPalette.slate,
+                              color: _selectedTab == 1
+                                  ? (palette.isDark ? Colors.black : Colors.white)
+                                  : palette.textSecondary,
                             ),
                             const SizedBox(width: 8),
                             Text(
@@ -176,7 +183,9 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
                               style: TextStyle(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 13,
-                                color: _selectedTab == 1 ? Colors.white : AppPalette.slate,
+                                color: _selectedTab == 1
+                                    ? (palette.isDark ? Colors.black : Colors.white)
+                                    : palette.textSecondary,
                               ),
                             ),
                           ],
@@ -200,7 +209,7 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
                     Expanded(
                       child: Text(
                         'CT1 has not been marked as completed yet. Complete CT1 in the Breakdown tab to unlock separate After-CT1 tracking.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.ink),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: palette.textPrimary),
                       ),
                     ),
                   ],
@@ -340,21 +349,16 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      SectionHeader(
-                        title: 'Theory Subjects (${theorySubjects.length})',
+                  SectionHeader(
+                    title: 'Theory Subjects (${theorySubjects.length})',
+                    trailing: Text(
+                      'Target: ${model.minimumAttendance.round()}%',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: model.themePalette.textSecondary,
                       ),
-                      Text(
-                        'Target: ${model.minimumAttendance.round()}%',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: AppPalette.slate,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                   const SizedBox(height: 14),
                   if (theorySubjects.isEmpty)
@@ -363,7 +367,7 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
                       child: Center(
                         child: Text(
                           'No theory subjects found. Add theory subjects in Schedule.',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.slate),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: palette.textSecondary),
                         ),
                       ),
                     )
@@ -381,9 +385,11 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
                         margin: const EdgeInsets.only(bottom: 10),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.45),
+                          color: palette.isDark ? const Color(0xFF1A1610) : Colors.white.withValues(alpha: 0.8),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppPalette.glassLine),
+                          border: Border.all(
+                            color: palette.isDark ? subject.color.withValues(alpha: 0.25) : palette.cardBorder,
+                          ),
                         ),
                         child: Column(
                           children: [
@@ -397,19 +403,19 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
                                     children: [
                                       Text(
                                         subject.name,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontWeight: FontWeight.w700,
                                           fontSize: 14,
-                                          color: AppPalette.ink,
+                                          color: palette.textPrimary,
                                         ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
                                         '${subject.present}/${subject.total} classes attended (${pct.toStringAsFixed(1)}%)',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 11,
-                                          color: AppPalette.slate,
+                                          color: palette.textSecondary,
                                         ),
                                       ),
                                     ],
@@ -439,9 +445,9 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
                               child: LinearProgressIndicator(
                                 value: (pct / 100).clamp(0.0, 1.0),
                                 minHeight: 4,
-                                backgroundColor: Colors.black.withValues(alpha: 0.06),
+                                backgroundColor: palette.isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.06),
                                 valueColor: AlwaysStoppedAnimation(
-                                  pct >= model.minimumAttendance ? AppPalette.green : AppPalette.red,
+                                  pct >= model.minimumAttendance ? (palette.isDark ? palette.accent : AppPalette.green) : AppPalette.red,
                                 ),
                               ),
                             ),
@@ -465,7 +471,7 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
                       ),
                       CupertinoSwitch(
                         value: _showTestMode,
-                        activeTrackColor: AppPalette.green,
+                        activeTrackColor: palette.accent,
                         onChanged: (value) {
                           setState(() {
                             _showTestMode = value;
@@ -479,7 +485,7 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
                   Text(
                     'Simulate attending or skipping future Theory classes to project your $activeTitle percentage.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppPalette.slate,
+                          color: palette.textSecondary,
                         ),
                   ),
                   if (_showTestMode) ...[
@@ -488,9 +494,9 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.6),
+                        color: palette.isDark ? const Color(0xFF1A1610) : Colors.white.withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: AppPalette.glassLine),
+                        border: Border.all(color: palette.cardBorder),
                       ),
                       child: Row(
                         children: [
@@ -498,7 +504,7 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
                             value: _simulatedAttendance(currentPresent, currentTotal) / 100,
                             label: '${_simulatedAttendance(currentPresent, currentTotal).toStringAsFixed(1)}%',
                             color: _simulatedAttendance(currentPresent, currentTotal) >= model.minimumAttendance
-                                ? AppPalette.green
+                                ? (palette.isDark ? palette.accent : AppPalette.green)
                                 : AppPalette.red,
                             size: 76,
                             strokeWidth: 8,
@@ -510,23 +516,23 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
                               children: [
                                 Text(
                                   'Projected $activeTitle Attendance',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.w800,
                                     fontSize: 13,
-                                    color: AppPalette.ink,
+                                    color: palette.textPrimary,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   'Simulated: +$_testPresent / +$_testTotal classes',
-                                  style: const TextStyle(fontSize: 12, color: AppPalette.slate),
+                                  style: TextStyle(fontSize: 12, color: palette.textSecondary),
                                 ),
                                 Text(
                                   'Total: ${currentPresent + _testPresent}/${currentTotal + _testTotal}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
-                                    color: AppPalette.ink,
+                                    color: palette.textPrimary,
                                   ),
                                 ),
                               ],
@@ -542,8 +548,8 @@ class _BunkCalculatorScreenState extends State<BunkCalculatorScreen> {
                         Expanded(
                           child: FilledButton.icon(
                             style: FilledButton.styleFrom(
-                              backgroundColor: AppPalette.green,
-                              foregroundColor: Colors.white,
+                              backgroundColor: palette.isDark ? palette.accent : AppPalette.green,
+                              foregroundColor: palette.isDark ? Colors.black : Colors.white,
                             ),
                             onPressed: () => _addTestDay(true),
                             icon: const Icon(CupertinoIcons.check_mark, size: 16),

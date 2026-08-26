@@ -14,21 +14,23 @@ class MoreProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = AttendXScope.of(context);
+    final palette = model.themePalette;
+
     return PageFrame(
       children: [
-        // Profile card
+        // Profile summary header
         GlassCard(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Container(
-                width: 58,
-                height: 58,
+                width: 52,
+                height: 52,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppPalette.green, AppPalette.blue],
+                  gradient: LinearGradient(
+                    colors: [palette.accent, palette.accentSecondary],
                   ),
-                  borderRadius: BorderRadius.circular(22),
+                  borderRadius: BorderRadius.circular(18),
                 ),
                 child: const Icon(CupertinoIcons.person_fill,
                     color: Colors.white, size: 28),
@@ -41,22 +43,23 @@ class MoreProfileScreen extends StatelessWidget {
                     Text(
                       model.studentName,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: AppPalette.ink,
+                            color: palette.textPrimary,
+                            fontWeight: FontWeight.w900,
                           ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${model.overallAttendance.toStringAsFixed(1)}% overall',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppPalette.slate,
+                            color: palette.textSecondary,
                           ),
                     ),
                   ],
                 ),
               ),
-              GestureDetector(
+              BouncyTap(
                 onTap: () => Navigator.pushNamed(context, ProfileScreen.route),
-                child: const Icon(CupertinoIcons.chevron_right, color: AppPalette.slate, size: 18),
+                child: Icon(CupertinoIcons.chevron_right, color: palette.textMuted, size: 18),
               ),
             ],
           ),
@@ -70,7 +73,7 @@ class MoreProfileScreen extends StatelessWidget {
               Text(
                 'Semester',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: AppPalette.slate,
+                      color: palette.textSecondary,
                     ),
               ),
               const SizedBox(height: 10),
@@ -81,7 +84,7 @@ class MoreProfileScreen extends StatelessWidget {
                     Text(
                       'Sem ${model.currentSemester}',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: AppPalette.ink,
+                            color: palette.textPrimary,
                             fontWeight: FontWeight.w800,
                           ),
                     ),
@@ -89,7 +92,7 @@ class MoreProfileScreen extends StatelessWidget {
                     ...List.generate(8, (index) {
                       final sem = index + 1;
                       final isCurrent = sem == model.currentSemester;
-                      return GestureDetector(
+                      return BouncyTap(
                         onTap: () {
                           if (!isCurrent) {
                             showDialog(
@@ -109,6 +112,7 @@ class MoreProfileScreen extends StatelessWidget {
                                   ),
                                   FilledButton(
                                     onPressed: () {
+                                      AppHaptics.medium();
                                       model.setSemester(sem);
                                       Navigator.pop(ctx);
                                     },
@@ -120,18 +124,19 @@ class MoreProfileScreen extends StatelessWidget {
                           }
                         },
                         child: Container(
-                          width: 28,
-                          height: 28,
-                          margin: const EdgeInsets.only(left: 4),
+                          width: 30,
+                          height: 30,
+                          margin: const EdgeInsets.only(left: 5),
                           decoration: BoxDecoration(
                             color: isCurrent
-                                ? AppPalette.green.withValues(alpha: 0.2)
+                                ? palette.accent.withValues(alpha: 0.22)
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
                               color: isCurrent
-                                  ? AppPalette.green
-                                  : AppPalette.glassLine,
+                                  ? palette.accent
+                                  : palette.cardBorder,
+                              width: isCurrent ? 1.5 : 1.0,
                             ),
                           ),
                           child: Center(
@@ -139,8 +144,8 @@ class MoreProfileScreen extends StatelessWidget {
                               '$sem',
                               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                     color: isCurrent
-                                        ? AppPalette.green
-                                        : AppPalette.slate,
+                                        ? palette.accent
+                                        : palette.textMuted,
                                     fontWeight: isCurrent ? FontWeight.w900 : FontWeight.w600,
                                   ),
                             ),
@@ -305,6 +310,9 @@ class SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final model = AttendXScope.of(context);
+    final palette = model.themePalette;
+
     return GlassCard(
       onTap: onTap,
       radius: 18,
@@ -315,32 +323,38 @@ class SettingsTile extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: AppPalette.green.withValues(alpha: 0.12),
+              color: palette.accent.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, color: AppPalette.green, size: 20),
+            child: Icon(icon, color: palette.accent, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: AppPalette.ink,
-                    )),
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: palette.textPrimary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
                 const SizedBox(height: 3),
                 Text(
                   subtitle,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppPalette.slate,
-                      ),
+                  style: TextStyle(
+                    color: palette.textSecondary,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
           ),
-          trailing ?? const Icon(CupertinoIcons.chevron_right, size: 16, color: AppPalette.slate),
+          trailing ?? Icon(CupertinoIcons.chevron_right, size: 16, color: palette.textMuted),
         ],
       ),
     );

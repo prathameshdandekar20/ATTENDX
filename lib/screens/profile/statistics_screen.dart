@@ -50,7 +50,7 @@ class StatisticsScreen extends StatelessWidget {
                 title: 'Best',
                 value: best.isEmpty ? '-' : best.first.name,
                 icon: CupertinoIcons.arrow_up_right,
-                color: AppPalette.green,
+                color: model.isDarkTheme ? model.themePalette.accent : AppPalette.green,
               ),
             ),
             const SizedBox(width: 12),
@@ -76,7 +76,7 @@ class StatisticsScreen extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium
-                      ?.copyWith(color: AppPalette.slate),
+                      ?.copyWith(color: model.themePalette.textSecondary),
                 )
               else
                 ...model.subjects.map(
@@ -100,6 +100,7 @@ class MiniBarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final model = AttendXScope.of(context);
     final values = [0.82, 0.74, 0.9, 0.78, 0.86, 0.8, 0.92];
     final labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
     return SizedBox(
@@ -107,7 +108,9 @@ class MiniBarChart extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: List.generate(values.length, (index) {
-          final color = values[index] >= 0.75 ? AppPalette.green : AppPalette.red;
+          final color = values[index] >= 0.75
+              ? (model.isDarkTheme ? model.themePalette.accent : AppPalette.green)
+              : AppPalette.red;
           return Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5),
@@ -150,11 +153,13 @@ class TrendLineChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final model = AttendXScope.of(context);
+    final chartColor = model.isDarkTheme ? model.themePalette.accent : AppPalette.purple;
     return SizedBox(
       height: 150,
       child: CustomPaint(
         painter: TrendLinePainter(
-          color: AppPalette.purple,
+          color: chartColor,
           values: const [0.64, 0.7, 0.68, 0.76, 0.74, 0.82, 0.86],
         ),
         child: Container(),

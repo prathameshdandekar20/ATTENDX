@@ -145,12 +145,13 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppPalette.ink.withValues(alpha: 0.08),
+                          color: model.themePalette.accent.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: model.themePalette.accent.withValues(alpha: 0.3)),
                         ),
                         child: Text(
                           '${subjectRecords.length} Classes',
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppPalette.ink),
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: model.themePalette.accent),
                         ),
                       ),
                     ],
@@ -164,14 +165,14 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                         _FilterChip(
                           label: 'All (${subjectRecords.length})',
                           isSelected: _selectedFilter == 'all',
-                          color: AppPalette.ink,
+                          color: model.themePalette.isDark ? model.themePalette.accent : AppPalette.ink,
                           onTap: () => setState(() => _selectedFilter = 'all'),
                         ),
                         const SizedBox(width: 8),
                         _FilterChip(
                           label: 'Present ($presentCount)',
                           isSelected: _selectedFilter == 'present',
-                          color: AppPalette.green,
+                          color: model.themePalette.isDark ? model.themePalette.accent : AppPalette.green,
                           onTap: () => setState(() => _selectedFilter = 'present'),
                         ),
                         const SizedBox(width: 8),
@@ -200,7 +201,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                           _selectedFilter == 'all'
                               ? 'No attendance recorded for ${subject.name} yet.'
                               : 'No $_selectedFilter records found.',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.slate),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: model.themePalette.textSecondary),
                         ),
                       ),
                     )
@@ -219,7 +220,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                         String statusLabel;
 
                         if (record.status == 'present') {
-                          statusColor = AppPalette.green;
+                          statusColor = model.themePalette.isDark ? model.themePalette.accent : AppPalette.green;
                           statusIcon = CupertinoIcons.check_mark_circled_solid;
                           statusLabel = 'Present';
                         } else if (record.status == 'absent') {
@@ -235,10 +236,10 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                         return Container(
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.5),
+                            color: model.themePalette.isDark ? const Color(0xFF1A1610) : Colors.white.withValues(alpha: 0.8),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: isToday ? AppPalette.green : AppPalette.glassLine,
+                              color: isToday ? (model.themePalette.isDark ? model.themePalette.accent : AppPalette.green) : model.themePalette.cardBorder,
                               width: isToday ? 1.5 : 1.0,
                             ),
                           ),
@@ -262,10 +263,10 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                                       children: [
                                         Text(
                                           _formatDate(record.date),
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontWeight: FontWeight.w700,
                                             fontSize: 13,
-                                            color: AppPalette.ink,
+                                            color: model.themePalette.textPrimary,
                                           ),
                                         ),
                                         if (isToday) ...[
@@ -273,15 +274,15 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                             decoration: BoxDecoration(
-                                              color: AppPalette.green.withValues(alpha: 0.15),
+                                              color: (model.themePalette.isDark ? model.themePalette.accent : AppPalette.green).withValues(alpha: 0.15),
                                               borderRadius: BorderRadius.circular(6),
                                             ),
-                                            child: const Text(
+                                            child: Text(
                                               'Today',
                                               style: TextStyle(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.bold,
-                                                color: AppPalette.green,
+                                                color: model.themePalette.isDark ? model.themePalette.accent : AppPalette.green,
                                               ),
                                             ),
                                           ),
@@ -406,13 +407,15 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return BouncyTap(
+      scaleDown: 0.94,
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? color : color.withValues(alpha: 0.08),
+          color: isSelected ? color : color.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isSelected ? color : color.withValues(alpha: 0.25),
@@ -423,7 +426,9 @@ class _FilterChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.bold,
-            color: isSelected ? Colors.white : (color == AppPalette.yellow ? const Color(0xFFB45309) : color),
+            color: isSelected
+                ? ((color == AppPalette.yellow || (isDark && color == AppPalette.gold)) ? Colors.black : Colors.white)
+                : color,
           ),
         ),
       ),

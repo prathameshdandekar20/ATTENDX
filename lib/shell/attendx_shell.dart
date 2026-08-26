@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../themes/palette.dart';
+import '../models/attendx_model.dart';
 import '../widgets/common.dart';
 import '../screens/today/mark_attendance_screen.dart';
 import '../screens/timetable/timetable_screen.dart';
@@ -64,23 +65,28 @@ class _AttendXShellState extends State<AttendXShell> {
     if (_lastBackPressTime == null ||
         now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
       _lastBackPressTime = now;
+      final model = AttendXScope.of(context);
+      final palette = model.themePalette;
       ScaffoldMessenger.of(context).removeCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 2),
           margin: const EdgeInsets.fromLTRB(20, 0, 20, 76),
-          backgroundColor: AppPalette.ink.withValues(alpha: 0.92),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          content: const Row(
+          backgroundColor: palette.isDark ? const Color(0xFF1E1A14) : AppPalette.ink.withValues(alpha: 0.92),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: palette.isDark ? palette.cardBorder : Colors.transparent),
+          ),
+          content: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(CupertinoIcons.info_circle_fill, color: AppPalette.green, size: 20),
-              SizedBox(width: 12),
+              Icon(CupertinoIcons.info_circle_fill, color: palette.accent, size: 20),
+              const SizedBox(width: 12),
               Text(
                 'Press back again to exit',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: palette.textPrimary,
                   fontWeight: FontWeight.w700,
                   fontSize: 13,
                 ),
@@ -143,6 +149,9 @@ class AttendXBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final model = AttendXScope.of(context);
+    final palette = model.themePalette;
+
     final items = [
       _NavItem(CupertinoIcons.doc_text, 'Today'),
       _NavItem(CupertinoIcons.calendar, 'Schedule'),
@@ -154,10 +163,18 @@ class AttendXBottomNav extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: palette.navBackground,
         border: Border(
-          top: BorderSide(color: AppPalette.glassLine, width: 0.5),
+          top: BorderSide(color: palette.navBorder, width: palette.isDark ? 1.0 : 0.5),
         ),
+        boxShadow: [
+          if (palette.isDark)
+            BoxShadow(
+              color: palette.accentGlow.withValues(alpha: 0.04),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
+            ),
+        ],
       ),
       child: SafeArea(
         top: false,
@@ -167,35 +184,36 @@ class AttendXBottomNav extends StatelessWidget {
             children: List.generate(items.length, (index) {
               final selected = index == currentIndex;
               final item = items[index];
+              final activeColor = palette.accent;
+              final inactiveColor = palette.navUnselected;
+
               return Expanded(
-                child: GestureDetector(
+                child: BouncyTap(
+                  scaleDown: 0.92,
                   onTap: () => onChanged(index),
-                  behavior: HitTestBehavior.opaque,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        item.icon,
-                        size: 22,
-                        color: selected
-                            ? AppPalette.green
-                            : AppPalette.slate,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item.label,
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              fontSize: 10,
-                              fontWeight:
-                                  selected ? FontWeight.w800 : FontWeight.w500,
-                              color: selected
-                                  ? AppPalette.green
-                                  : AppPalette.slate,
-                            ),
-                      ),
-                    ],
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          item.icon,
+                          size: 22,
+                          color: selected ? activeColor : inactiveColor,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.label,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+                            color: selected ? activeColor : inactiveColor,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );

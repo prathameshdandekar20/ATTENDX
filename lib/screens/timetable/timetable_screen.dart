@@ -128,20 +128,20 @@ class _TimetableScreenState extends State<TimetableScreen> {
         Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.6),
+            color: model.themePalette.cardFill,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppPalette.glassLine),
+            border: Border.all(color: model.themePalette.cardBorder),
           ),
           child: Row(
             children: [
               Expanded(
-                child: GestureDetector(
+                child: BouncyTap(
                   onTap: () => setState(() => _currentSegment = 0),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
-                      color: _currentSegment == 0 ? AppPalette.green : Colors.transparent,
+                      color: _currentSegment == 0 ? model.themePalette.accent : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -150,7 +150,9 @@ class _TimetableScreenState extends State<TimetableScreen> {
                         Icon(
                           CupertinoIcons.calendar,
                           size: 16,
-                          color: _currentSegment == 0 ? Colors.white : AppPalette.slate,
+                          color: _currentSegment == 0
+                              ? (model.isDarkTheme ? Colors.black : Colors.white)
+                              : model.themePalette.textSecondary,
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -158,7 +160,9 @@ class _TimetableScreenState extends State<TimetableScreen> {
                           style: TextStyle(
                             fontWeight: FontWeight.w800,
                             fontSize: 13,
-                            color: _currentSegment == 0 ? Colors.white : AppPalette.slate,
+                            color: _currentSegment == 0
+                                ? (model.isDarkTheme ? Colors.black : Colors.white)
+                                : model.themePalette.textSecondary,
                           ),
                         ),
                       ],
@@ -167,13 +171,13 @@ class _TimetableScreenState extends State<TimetableScreen> {
                 ),
               ),
               Expanded(
-                child: GestureDetector(
+                child: BouncyTap(
                   onTap: () => setState(() => _currentSegment = 1),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
-                      color: _currentSegment == 1 ? AppPalette.green : Colors.transparent,
+                      color: _currentSegment == 1 ? model.themePalette.accent : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -182,7 +186,9 @@ class _TimetableScreenState extends State<TimetableScreen> {
                         Icon(
                           CupertinoIcons.book,
                           size: 16,
-                          color: _currentSegment == 1 ? Colors.white : AppPalette.slate,
+                          color: _currentSegment == 1
+                              ? (model.isDarkTheme ? Colors.black : Colors.white)
+                              : model.themePalette.textSecondary,
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -190,7 +196,9 @@ class _TimetableScreenState extends State<TimetableScreen> {
                           style: TextStyle(
                             fontWeight: FontWeight.w800,
                             fontSize: 13,
-                            color: _currentSegment == 1 ? Colors.white : AppPalette.slate,
+                            color: _currentSegment == 1
+                                ? (model.isDarkTheme ? Colors.black : Colors.white)
+                                : model.themePalette.textSecondary,
                           ),
                         ),
                       ],
@@ -213,8 +221,11 @@ class _TimetableScreenState extends State<TimetableScreen> {
               physics: const ClampingScrollPhysics(),
               itemBuilder: (context, index) {
                 final selected = index == _selectedDayIndex;
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedDayIndex = index),
+                return BouncyTap(
+                  onTap: () {
+                    AppHaptics.selection();
+                    setState(() => _selectedDayIndex = index);
+                  },
                   child: GlassCard(
                     radius: 22,
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
@@ -224,7 +235,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
                         Text(
                           _shortDays[index],
                           style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                color: selected ? AppPalette.green : AppPalette.slate,
+                                color: selected ? model.themePalette.accent : model.themePalette.textSecondary,
                                 fontWeight: selected ? FontWeight.w900 : FontWeight.w600,
                               ),
                         ),
@@ -233,7 +244,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
                           width: 6,
                           height: 6,
                           decoration: BoxDecoration(
-                            color: selected ? AppPalette.green : Colors.transparent,
+                            color: selected ? model.themePalette.accent : Colors.transparent,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -257,21 +268,22 @@ class _TimetableScreenState extends State<TimetableScreen> {
                       child: Text(
                         '$_selectedDay Classes',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: AppPalette.ink,
+                              color: model.themePalette.textPrimary,
                               fontWeight: FontWeight.w800,
                             ),
                       ),
                     ),
-                    GestureDetector(
+                    BouncyTap(
                       onTap: _showAddClassDialog,
                       child: Container(
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: AppPalette.green.withValues(alpha: 0.15),
+                          color: model.themePalette.accent.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: model.themePalette.accent.withValues(alpha: 0.3)),
                         ),
-                        child: const Icon(CupertinoIcons.plus, color: AppPalette.green, size: 18),
+                        child: Icon(CupertinoIcons.plus, color: model.themePalette.accent, size: 18),
                       ),
                     ),
                   ],
@@ -284,12 +296,12 @@ class _TimetableScreenState extends State<TimetableScreen> {
                       child: Column(
                         children: [
                           Icon(CupertinoIcons.calendar_badge_plus,
-                              color: AppPalette.slate.withValues(alpha: 0.5), size: 42),
+                              color: model.themePalette.textMuted, size: 42),
                           const SizedBox(height: 10),
                           Text(
                             'No classes on $_selectedDay',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: AppPalette.slate,
+                                  color: model.themePalette.textSecondary,
                                 ),
                           ),
                           const SizedBox(height: 10),
@@ -359,7 +371,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
                 Text(
                   'Weekly Overview',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: AppPalette.ink,
+                        color: model.themePalette.textPrimary,
                         fontWeight: FontWeight.w800,
                       ),
                 ),
@@ -375,7 +387,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
                           child: Text(
                             day,
                             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                  color: day == _selectedDay ? AppPalette.green : AppPalette.slate,
+                                  color: day == _selectedDay ? model.themePalette.accent : model.themePalette.textSecondary,
                                   fontWeight: day == _selectedDay ? FontWeight.w900 : FontWeight.w600,
                                 ),
                           ),
@@ -386,9 +398,9 @@ class _TimetableScreenState extends State<TimetableScreen> {
                             child: LinearProgressIndicator(
                               minHeight: 8,
                               value: count / 8.0,
-                              backgroundColor: AppPalette.green.withValues(alpha: 0.08),
+                              backgroundColor: model.themePalette.accent.withValues(alpha: 0.12),
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                day == _selectedDay ? AppPalette.green : AppPalette.blue,
+                                day == _selectedDay ? model.themePalette.accent : model.themePalette.accentSecondary,
                               ),
                             ),
                           ),
@@ -397,7 +409,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
                         Text(
                           '$count classes',
                           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: AppPalette.slate,
+                                color: model.themePalette.textSecondary,
                               ),
                         ),
                       ],
@@ -419,7 +431,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
                   value: model.overallAttendance / 100,
                   label: '${model.overallAttendance.toStringAsFixed(1)}%',
                   color: model.overallAttendance >= model.minimumAttendance
-                      ? AppPalette.green
+                      ? (model.isDarkTheme ? model.themePalette.accent : AppPalette.green)
                       : AppPalette.red,
                   size: 86,
                 ),
@@ -431,7 +443,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
                       Text(
                         'Overall Attendance',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: AppPalette.ink,
+                              color: model.themePalette.textPrimary,
                               fontWeight: FontWeight.w800,
                             ),
                       ),
@@ -443,7 +455,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
                                 ? 'Above minimum by ${gap.toStringAsFixed(1)}%.'
                                 : 'Below minimum by ${gap.abs().toStringAsFixed(1)}%.',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppPalette.slate,
+                              color: model.themePalette.textSecondary,
                               fontSize: 12,
                             ),
                       ),
@@ -461,29 +473,29 @@ class _TimetableScreenState extends State<TimetableScreen> {
                 'All Subjects (${model.subjects.length})',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w800,
-                      color: AppPalette.ink,
+                      color: model.themePalette.textPrimary,
                     ),
               ),
-              GestureDetector(
+              BouncyTap(
                 onTap: () => Navigator.pushNamed(context, AddEditSubjectScreen.route),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppPalette.green.withValues(alpha: 0.15),
+                    color: model.themePalette.accent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppPalette.green.withValues(alpha: 0.3)),
+                    border: Border.all(color: model.themePalette.accent.withValues(alpha: 0.3)),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(CupertinoIcons.plus, color: AppPalette.green, size: 16),
-                      SizedBox(width: 4),
+                      Icon(CupertinoIcons.plus, color: model.themePalette.accent, size: 16),
+                      const SizedBox(width: 4),
                       Text(
                         'Add Subject',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: AppPalette.green,
+                          color: model.themePalette.accent,
                         ),
                       ),
                     ],
@@ -497,17 +509,17 @@ class _TimetableScreenState extends State<TimetableScreen> {
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
-                  const Icon(CupertinoIcons.book, color: AppPalette.slate, size: 42),
+                  Icon(CupertinoIcons.book, color: model.themePalette.textMuted, size: 42),
                   const SizedBox(height: 12),
                   Text(
                     'No subjects added',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppPalette.ink),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(color: model.themePalette.textPrimary),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     'Create your first subject to begin tracking.',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.slate),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: model.themePalette.textSecondary),
                   ),
                   const SizedBox(height: 14),
                   FilledButton.icon(

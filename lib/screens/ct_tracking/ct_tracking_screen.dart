@@ -54,7 +54,7 @@ class CtTrackingScreen extends StatelessWidget {
                       margin: const EdgeInsets.only(right: 16),
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: model.themePalette.cardFill,
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(color: slice.color.withValues(alpha: 0.3)),
                       ),
@@ -82,7 +82,7 @@ class CtTrackingScreen extends StatelessWidget {
                           Text(
                             '${slice.present}/${slice.total} classes',
                             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                  color: AppPalette.ink,
+                                  color: model.themePalette.textPrimary,
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
@@ -224,23 +224,23 @@ class CtTrackingScreen extends StatelessWidget {
                                               child: Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                                 decoration: BoxDecoration(
-                                                  color: Colors.black.withValues(alpha: 0.05),
+                                                  color: model.themePalette.isDark ? const Color(0xFF1E1A14) : Colors.black.withValues(alpha: 0.05),
                                                   borderRadius: BorderRadius.circular(10),
-                                                  border: Border.all(color: AppPalette.glassLine),
+                                                  border: Border.all(color: model.themePalette.cardBorder),
                                                 ),
                                                 child: Row(
                                                   children: [
-                                                    const Icon(CupertinoIcons.calendar, size: 18, color: AppPalette.green),
+                                                    Icon(CupertinoIcons.calendar, size: 18, color: model.themePalette.accent),
                                                     const SizedBox(width: 8),
                                                     Text(
                                                       dateStr,
-                                                      style: const TextStyle(
+                                                      style: TextStyle(
                                                         fontWeight: FontWeight.bold,
-                                                        color: AppPalette.ink,
+                                                        color: model.themePalette.textPrimary,
                                                       ),
                                                     ),
                                                     const Spacer(),
-                                                    const Icon(CupertinoIcons.chevron_down, size: 14, color: AppPalette.slate),
+                                                    Icon(CupertinoIcons.chevron_down, size: 14, color: model.themePalette.textSecondary),
                                                   ],
                                                 ),
                                               ),
@@ -345,20 +345,20 @@ class CtTrackingScreen extends StatelessWidget {
                                               child: Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                                 decoration: BoxDecoration(
-                                                  color: Colors.black.withValues(alpha: 0.05),
+                                                  color: model.themePalette.isDark ? const Color(0xFF1E1A14) : Colors.black.withValues(alpha: 0.05),
                                                   borderRadius: BorderRadius.circular(10),
-                                                  border: Border.all(color: AppPalette.glassLine),
+                                                  border: Border.all(color: model.themePalette.cardBorder),
                                                 ),
                                                 child: Row(
                                                   children: [
-                                                    const Icon(CupertinoIcons.calendar, size: 18, color: AppPalette.green),
+                                                    Icon(CupertinoIcons.calendar, size: 18, color: model.themePalette.accent),
                                                     const SizedBox(width: 8),
                                                     Text(
                                                       dateStr,
-                                                      style: const TextStyle(fontWeight: FontWeight.bold, color: AppPalette.ink),
+                                                      style: TextStyle(fontWeight: FontWeight.bold, color: model.themePalette.textPrimary),
                                                     ),
                                                     const Spacer(),
-                                                    const Icon(CupertinoIcons.chevron_down, size: 14, color: AppPalette.slate),
+                                                    Icon(CupertinoIcons.chevron_down, size: 14, color: model.themePalette.textSecondary),
                                                   ],
                                                 ),
                                               ),

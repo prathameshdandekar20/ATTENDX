@@ -56,6 +56,7 @@ class _AddEditSubjectScreenState extends State<AddEditSubjectScreen> {
   @override
   Widget build(BuildContext context) {
     final isEditing = _editingSubject != null;
+    final palette = AttendXScope.of(context).themePalette;
 
     return DetailShell(
       title: isEditing ? 'Edit Subject' : 'Add Subject',
@@ -119,7 +120,8 @@ class _AddEditSubjectScreenState extends State<AddEditSubjectScreen> {
                 children: List.generate(AttendXData.iconChoices.length, (index) {
                   final choice = AttendXData.iconChoices[index];
                   final isSelected = _selectedIconIndex == index;
-                  return GestureDetector(
+                  return BouncyTap(
+                    scaleDown: 0.9,
                     onTap: () => setState(() => _selectedIconIndex = index),
                     child: Container(
                       width: 52,
@@ -130,7 +132,7 @@ class _AddEditSubjectScreenState extends State<AddEditSubjectScreen> {
                         border: Border.all(
                           color: isSelected
                               ? choice.color
-                              : Colors.white.withValues(alpha: 0.5),
+                              : (palette.isDark ? palette.cardBorder : Colors.white.withValues(alpha: 0.5)),
                           width: isSelected ? 2 : 1,
                         ),
                       ),
@@ -151,16 +153,17 @@ class _AddEditSubjectScreenState extends State<AddEditSubjectScreen> {
         else ...[
           FilledButton.icon(
             onPressed: _saveAndAddNext,
-            icon: const Icon(CupertinoIcons.plus_circle),
-            label: const Text('Save Subject'),
+            icon: const Icon(CupertinoIcons.plus_circle_fill),
+            label: const Text('Add & Add Another'),
           ),
           const SizedBox(height: 10),
           OutlinedButton.icon(
             onPressed: _finish,
-            icon: const Icon(CupertinoIcons.check_mark_circled),
-            label: Text(_addedCount > 0 ? 'Done ($_addedCount Added)' : 'Done'),
+            icon: const Icon(CupertinoIcons.check_mark),
+            label: Text(_addedCount > 0 ? 'Done Adding ($_addedCount added)' : 'Save & Done'),
           ),
         ],
+        const SizedBox(height: 80),
       ],
     );
   }
@@ -269,16 +272,22 @@ class _TypeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final palette = AttendXScope.of(context).themePalette;
+    return BouncyTap(
+      scaleDown: 0.95,
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppPalette.green.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.3),
+          color: isSelected
+              ? palette.accent.withValues(alpha: 0.15)
+              : (palette.isDark ? const Color(0xFF18140E) : Colors.white.withValues(alpha: 0.3)),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppPalette.green : Colors.white.withValues(alpha: 0.5),
+            color: isSelected
+                ? palette.accent
+                : (palette.isDark ? palette.cardBorder : Colors.white.withValues(alpha: 0.5)),
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -286,7 +295,7 @@ class _TypeButton extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: isSelected ? AppPalette.green : AppPalette.slate,
+                  color: isSelected ? palette.accent : palette.textSecondary,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
           ),

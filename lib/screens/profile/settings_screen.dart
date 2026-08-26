@@ -82,17 +82,58 @@ class SettingsScreen extends StatelessWidget {
             ],
           ),
         ),
-        SettingsTile(
-          icon: CupertinoIcons.moon,
-          title: 'Dark mode compatible',
-          subtitle: 'Follow system appearance',
-          trailing: Switch(value: true, onChanged: (_) {}),
+        GlassCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SectionHeader(title: 'App Theme'),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: _ThemeChoiceCard(
+                      title: 'Obsidian Gold',
+                      subtitle: 'OLED Pitch Black',
+                      icon: Icons.star_rounded,
+                      accentColor: AppPalette.gold,
+                      bgColor: const Color(0xFF14110C),
+                      isSelected: model.selectedTheme == 'obsidian_gold',
+                      onTap: () {
+                        AppHaptics.medium();
+                        model.setTheme('obsidian_gold');
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _ThemeChoiceCard(
+                      title: 'Emerald Mint',
+                      subtitle: 'Fresh Light',
+                      icon: Icons.eco_rounded,
+                      accentColor: AppPalette.green,
+                      bgColor: const Color(0xFFE5F7EF),
+                      isSelected: model.selectedTheme == 'emerald_mint',
+                      onTap: () {
+                        AppHaptics.medium();
+                        model.setTheme('emerald_mint');
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
         SettingsTile(
           icon: Icons.inventory_2_rounded,
           title: 'Auto archive semesters',
           subtitle: 'Keep old semester data separate',
-          trailing: Switch(value: true, onChanged: (_) {}),
+          trailing: Switch(
+            value: true,
+            activeThumbColor: model.themePalette.accent,
+            activeTrackColor: model.themePalette.accent.withValues(alpha: 0.38),
+            onChanged: (_) {},
+          ),
         ),
         const SizedBox(height: 20),
         GlassCard(
@@ -116,7 +157,7 @@ class SettingsScreen extends StatelessWidget {
                   },
                 ),
               ),
-              const Divider(color: AppPalette.glassLine, height: 20),
+              Divider(color: model.themePalette.divider, height: 20),
               _ResetTile(
                 icon: CupertinoIcons.clear_circled,
                 title: 'Reset Attendance Only',
@@ -124,41 +165,114 @@ class SettingsScreen extends StatelessWidget {
                 color: AppPalette.orange,
                 onTap: () => _confirmReset(
                   context,
-                  title: 'Reset Attendance?',
-                  message: 'This will reset all subject attendance counters to 0, clear your daily logs, and reset CT milestones. Your subjects list and timetable schedule will be kept.',
-                  onConfirm: () => model.resetAttendance(),
+                  title: 'Reset Attendance Only?',
+                  message: 'This will reset all attendance counters, logs, and CT snapshots to zero. Your subjects and weekly schedule will be kept.',
+                  onConfirm: () {
+                    model.resetAttendance();
+                    Navigator.pop(context);
+                  },
                 ),
               ),
-              const Divider(color: AppPalette.glassLine, height: 20),
+              Divider(color: model.themePalette.divider, height: 20),
               _ResetTile(
-                icon: CupertinoIcons.calendar_today,
-                title: 'Reset Schedule Only',
-                subtitle: 'Wipe all entries in your weekly timetable. Keeps subjects and attendance logs.',
-                color: AppPalette.blue,
-                onTap: () => _confirmReset(
-                  context,
-                  title: 'Reset Timetable Schedule?',
-                  message: 'This will clear all classes/slots from your weekly timetable. Your subject lists and attendance logs will not be affected.',
-                  onConfirm: () => model.resetSchedule(),
-                ),
-              ),
-              const Divider(color: AppPalette.glassLine, height: 20),
-              _ResetTile(
-                icon: CupertinoIcons.clock,
-                title: 'Reset CT Tracking Only',
-                subtitle: 'Clear CT1 snapshot and completion date.',
+                icon: CupertinoIcons.calendar_badge_minus,
+                title: 'Reset Timetable Only',
+                subtitle: 'Clear weekly schedule and extra lectures. Keeps attendance & subjects.',
                 color: AppPalette.purple,
                 onTap: () => _confirmReset(
                   context,
-                  title: 'Reset CT Tracking?',
-                  message: 'This will reset the completed date and snapshot for CT1 tracking. It does not affect normal attendance logs.',
-                  onConfirm: () => model.resetCTTracking(),
+                  title: 'Reset Timetable Only?',
+                  message: 'This will clear all entries from your weekly timetable and extra lectures. Your subjects and attendance records will remain safe.',
+                  onConfirm: () {
+                    model.resetSchedule();
+                    Navigator.pop(context);
+                  },
                 ),
               ),
             ],
           ),
         ),
+        const SizedBox(height: 80),
       ],
+    );
+  }
+}
+
+class _ThemeChoiceCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color accentColor;
+  final Color bgColor;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ThemeChoiceCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.accentColor,
+    required this.bgColor,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDarkCard = bgColor != const Color(0xFFE5F7EF);
+
+    return BouncyTap(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isSelected ? accentColor : (isDarkCard ? const Color(0x33E5B842) : Colors.white),
+            width: isSelected ? 2.0 : 1.0,
+          ),
+          boxShadow: [
+            if (isSelected)
+              BoxShadow(
+                color: accentColor.withValues(alpha: 0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(icon, color: accentColor, size: 22),
+                if (isSelected)
+                  Icon(Icons.check_circle_rounded, color: accentColor, size: 18),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 13,
+                color: isDarkCard ? Colors.white : AppPalette.ink,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 11,
+                color: isDarkCard ? const Color(0xFFA89F8B) : AppPalette.slate,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -180,9 +294,11 @@ class _ResetTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    final model = AttendXScope.of(context);
+    final palette = model.themePalette;
+
+    return BouncyTap(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
         child: Row(
@@ -202,22 +318,24 @@ class _ResetTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: AppPalette.ink,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: TextStyle(
+                      color: palette.textPrimary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     subtitle,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppPalette.slate,
-                        ),
+                    style: TextStyle(
+                      color: palette.textSecondary,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
             ),
-            const Icon(CupertinoIcons.chevron_right, color: AppPalette.slate, size: 16),
+            Icon(CupertinoIcons.chevron_right, color: palette.textMuted, size: 16),
           ],
         ),
       ),

@@ -32,6 +32,8 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
       'July', 'August', 'September', 'October', 'November', 'December',
     ];
 
+    final palette = model.themePalette;
+
     return PageFrame(
       children: [
         // Month navigation
@@ -39,31 +41,31 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Row(
             children: [
-              GestureDetector(
+              BouncyTap(
                 onTap: () {
                   setState(() {
                     _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1);
                   });
                 },
-                child: const Icon(CupertinoIcons.chevron_left, color: AppPalette.ink, size: 20),
+                child: Icon(CupertinoIcons.chevron_left, color: palette.textPrimary, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   '${monthNames[_currentMonth.month - 1]} ${_currentMonth.year}',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: AppPalette.ink,
+                        color: palette.textPrimary,
                         fontWeight: FontWeight.w800,
                       ),
                 ),
               ),
-              GestureDetector(
+              BouncyTap(
                 onTap: () {
                   setState(() {
                     _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + 1);
                   });
                 },
-                child: const Icon(CupertinoIcons.chevron_right, color: AppPalette.ink, size: 20),
+                child: Icon(CupertinoIcons.chevron_right, color: palette.textPrimary, size: 20),
               ),
             ],
           ),
@@ -81,7 +83,7 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
                       child: Text(
                         d,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: AppPalette.slate,
+                              color: palette.textMuted,
                               fontWeight: FontWeight.w700,
                             ),
                       ),
@@ -116,7 +118,7 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
                     if (hasRecords) {
                       final values = dayRecords.values.toList();
                       if (values.every((a) => a == 'present')) {
-                        dotColor = AppPalette.green;
+                        dotColor = palette.isDark ? palette.accent : AppPalette.green;
                       } else if (values.every((a) => a == 'absent')) {
                         dotColor = AppPalette.red;
                       } else if (values.every((a) => a == 'off')) {
@@ -127,21 +129,24 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
                     }
 
                     return Expanded(
-                      child: GestureDetector(
+                      child: BouncyTap(
+                        scaleDown: 0.9,
                         onTap: () => setState(() => _selectedDay = date),
                         child: Container(
                           height: 40,
                           margin: const EdgeInsets.all(1),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? AppPalette.green.withValues(alpha: 0.2)
+                                ? palette.accent.withValues(alpha: 0.2)
                                 : isToday
-                                    ? AppPalette.glassLine
+                                    ? (palette.isDark ? const Color(0xFF221E17) : AppPalette.glassLine)
                                     : Colors.transparent,
                             borderRadius: BorderRadius.circular(10),
                             border: isSelected
-                                ? Border.all(color: AppPalette.green, width: 1.5)
-                                : null,
+                                ? Border.all(color: palette.accent, width: 1.5)
+                                : isToday
+                                    ? Border.all(color: palette.accent.withValues(alpha: 0.5), width: 1)
+                                    : null,
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -150,10 +155,10 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
                                 '$dayIndex',
                                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                                       color: isSelected
-                                          ? AppPalette.green
+                                          ? palette.accent
                                           : isToday
-                                              ? AppPalette.ink
-                                              : AppPalette.slate,
+                                              ? palette.textPrimary
+                                              : palette.textSecondary,
                                       fontWeight: isSelected || isToday
                                           ? FontWeight.w800
                                           : FontWeight.w500,
@@ -187,7 +192,7 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
             child: Text(
               'Logs for ${shortDate(_selectedDay!)}',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: AppPalette.ink,
+                    color: palette.textPrimary,
                     fontWeight: FontWeight.w700,
                   ),
             ),
@@ -203,7 +208,7 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
                           height: 32,
                           decoration: BoxDecoration(
                             color: log.present
-                                ? AppPalette.green.withValues(alpha: 0.15)
+                                ? (palette.isDark ? palette.accent : AppPalette.green).withValues(alpha: 0.15)
                                 : AppPalette.red.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -211,7 +216,7 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
                             log.present
                                 ? CupertinoIcons.check_mark
                                 : CupertinoIcons.xmark,
-                            color: log.present ? AppPalette.green : AppPalette.red,
+                            color: log.present ? (palette.isDark ? palette.accent : AppPalette.green) : AppPalette.red,
                             size: 16,
                           ),
                         ),
@@ -220,7 +225,7 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
                           child: Text(
                             log.note,
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: AppPalette.ink,
+                                  color: palette.textPrimary,
                                 ),
                           ),
                         ),
@@ -233,7 +238,7 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
               child: Text(
                 'No attendance marked for this day.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppPalette.slate,
+                      color: palette.textSecondary,
                     ),
               ),
             ),

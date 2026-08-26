@@ -14,7 +14,9 @@ class SubjectListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = AttendXScope.of(context);
+    final palette = model.themePalette;
     final gap = model.overallAttendance - model.minimumAttendance;
+
     return PageFrame(
       children: [
         Row(
@@ -23,21 +25,22 @@ class SubjectListScreen extends StatelessWidget {
               child: Text(
                 'Subjects',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppPalette.ink,
+                      color: palette.textPrimary,
                       fontWeight: FontWeight.w800,
                     ),
               ),
             ),
-            GestureDetector(
+            BouncyTap(
               onTap: () => Navigator.pushNamed(context, AddEditSubjectScreen.route),
               child: Container(
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: AppPalette.green.withValues(alpha: 0.15),
+                  color: palette.accent.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: palette.accent.withValues(alpha: 0.3)),
                 ),
-                child: const Icon(CupertinoIcons.plus, color: AppPalette.green, size: 18),
+                child: Icon(CupertinoIcons.plus, color: palette.accent, size: 18),
               ),
             ),
           ],
@@ -50,7 +53,7 @@ class SubjectListScreen extends StatelessWidget {
                 value: model.overallAttendance / 100,
                 label: '${model.overallAttendance.toStringAsFixed(1)}%',
                 color: model.overallAttendance >= model.minimumAttendance
-                    ? AppPalette.green
+                    ? (model.isDarkTheme ? palette.accent : AppPalette.green)
                     : AppPalette.red,
                 size: 86,
               ),
@@ -62,7 +65,8 @@ class SubjectListScreen extends StatelessWidget {
                     Text(
                       'Overall Attendance',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: AppPalette.ink,
+                            color: palette.textPrimary,
+                            fontWeight: FontWeight.bold,
                           ),
                     ),
                     const SizedBox(height: 8),
@@ -73,7 +77,7 @@ class SubjectListScreen extends StatelessWidget {
                                ? 'Above min by ${gap.toStringAsFixed(1)}%.'
                                : 'Below min by ${gap.abs().toStringAsFixed(1)}%.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppPalette.slate,
+                            color: palette.textSecondary,
                           ),
                     ),
                   ],
@@ -87,14 +91,14 @@ class SubjectListScreen extends StatelessWidget {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                const Icon(CupertinoIcons.book, color: AppPalette.slate, size: 42),
+                Icon(CupertinoIcons.book, color: palette.textMuted, size: 42),
                 const SizedBox(height: 12),
                 Text('No subjects added',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppPalette.ink)),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: palette.textPrimary)),
                 const SizedBox(height: 6),
                 Text('Create your first subject to begin.',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.slate)),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: palette.textSecondary)),
                 const SizedBox(height: 14),
                 FilledButton.icon(
                   onPressed: () => Navigator.pushNamed(context, AddEditSubjectScreen.route),
@@ -135,6 +139,8 @@ class SubjectManageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = AttendXScope.of(context);
+    final palette = model.themePalette;
+
     return Dismissible(
       key: ValueKey('manage_sem_${model.currentSemester}_subj_${subject.name}_${subject.code}_${subject.isLab}'),
       direction: DismissDirection.endToStart,
@@ -148,6 +154,7 @@ class SubjectManageCard extends StatelessWidget {
         );
       },
       onDismissed: (_) {
+        AppHaptics.heavy();
         model.deleteSubject(subject);
       },
       background: Container(
@@ -173,12 +180,20 @@ class SubjectManageCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(subject.name,
+                  Text(
+                    subject.name,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: AppPalette.ink, fontWeight: FontWeight.w800)),
+                          color: palette.textPrimary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
                   const SizedBox(height: 4),
-                  Text('${subject.present}/${subject.total} • ${subject.percentage.toStringAsFixed(1)}%',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.slate)),
+                  Text(
+                    '${subject.present}/${subject.total} • ${subject.percentage.toStringAsFixed(1)}%',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: palette.textSecondary,
+                        ),
+                  ),
                 ],
               ),
             ),

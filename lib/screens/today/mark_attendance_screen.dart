@@ -70,7 +70,7 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
                 const SizedBox(height: 8),
                 DropdownButtonFormField<Subject>(
                   isExpanded: true,
-                  value: selectedSubject,
+                  initialValue: selectedSubject,
                   decoration: setupDecoration(ctx, 'Subject', CupertinoIcons.book),
                   borderRadius: BorderRadius.circular(20),
                   items: model.subjects.map((s) {
@@ -207,6 +207,8 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
     final dayName = model.dayNameForDate(_selectedDate);
     final schedule = model.scheduleForDate(_selectedDate);
 
+    final palette = model.themePalette;
+
     return PageFrame(
       children: [
         // Top row: date with prev/next arrows + overall stats + add extra lecture
@@ -218,24 +220,23 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
                 child: Row(
                   children: [
                     // Previous day button
-                    GestureDetector(
+                    BouncyTap(
                       onTap: _previousDay,
-                      behavior: HitTestBehavior.opaque,
                       child: Container(
-                        width: 30,
-                        height: 30,
+                        width: 32,
+                        height: 32,
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppPalette.glassLine),
+                          color: palette.cardFill,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: palette.cardBorder),
                         ),
-                        child: const Icon(CupertinoIcons.chevron_left, color: AppPalette.ink, size: 14),
+                        child: Icon(CupertinoIcons.chevron_left, color: palette.textPrimary, size: 14),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
                     // Clickable date text
                     Expanded(
-                      child: GestureDetector(
+                      child: BouncyTap(
                         onTap: () async {
                           final date = await showDialog<DateTime>(
                             context: context,
@@ -247,35 +248,39 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
                           if (date != null) setState(() => _selectedDate = date);
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          color: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                          decoration: BoxDecoration(
+                            color: palette.cardFill,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: palette.cardBorder.withValues(alpha: 0.5)),
+                          ),
                           child: Text(
                             _formatDate(_selectedDate),
                             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  color: AppPalette.ink,
+                                  color: palette.textPrimary,
                                   fontWeight: FontWeight.w800,
                                   fontSize: 13,
                                 ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
                     // Next day button
-                    GestureDetector(
+                    BouncyTap(
                       onTap: _nextDay,
-                      behavior: HitTestBehavior.opaque,
                       child: Container(
-                        width: 30,
-                        height: 30,
+                        width: 32,
+                        height: 32,
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppPalette.glassLine),
+                          color: palette.cardFill,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: palette.cardBorder),
                         ),
-                        child: const Icon(CupertinoIcons.chevron_right, color: AppPalette.ink, size: 14),
+                        child: Icon(CupertinoIcons.chevron_right, color: palette.textPrimary, size: 14),
                       ),
                     ),
                   ],
@@ -285,27 +290,40 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
               GlassCard(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 radius: 12,
-                child: Text(
-                  '${model.overallAttendance.toStringAsFixed(1)} | ${model.minimumAttendance.round()}',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: AppPalette.ink,
-                        fontWeight: FontWeight.w800,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AnimatedPercentageText(
+                      percentage: model.overallAttendance,
+                      style: TextStyle(
+                        color: palette.accent,
+                        fontWeight: FontWeight.w900,
                         fontSize: 12,
                       ),
+                    ),
+                    Text(
+                      ' | ${model.minimumAttendance.round()}%',
+                      style: TextStyle(
+                        color: palette.textSecondary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: 8),
-              GestureDetector(
+              BouncyTap(
                 onTap: () => _showAddExtraLectureDialog(context, model),
                 child: Container(
-                  width: 30,
-                  height: 30,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppPalette.glassLine),
+                    color: palette.cardFill,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: palette.cardBorder),
                   ),
-                  child: const Icon(CupertinoIcons.plus, color: AppPalette.ink, size: 17),
+                  child: Icon(CupertinoIcons.plus, color: palette.accent, size: 17),
                 ),
               ),
             ],
@@ -313,14 +331,14 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
         ),
         // Colored accent bar
         Container(
-          height: 4,
+          height: 3,
           margin: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(2),
             gradient: LinearGradient(
               colors: [
-                AppPalette.green.withValues(alpha: 0.6),
-                AppPalette.green.withValues(alpha: 0.15),
+                palette.accent.withValues(alpha: 0.8),
+                palette.accent.withValues(alpha: 0.15),
               ],
             ),
           ),
@@ -332,14 +350,14 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                const Icon(CupertinoIcons.calendar, color: AppPalette.slate, size: 42),
+                Icon(CupertinoIcons.calendar, color: palette.textMuted, size: 42),
                 const SizedBox(height: 12),
                 Text('No lectures or labs scheduled',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppPalette.ink)),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(color: palette.textPrimary)),
                 const SizedBox(height: 6),
                 Text('You do not have any classes scheduled for $dayName.',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.slate)),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: palette.textSecondary)),
                 const SizedBox(height: 14),
                 FilledButton.icon(
                   onPressed: () => _showAddExtraLectureDialog(context, model),
@@ -370,13 +388,14 @@ class _DayStatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = AttendXScope.of(context);
+    final palette = model.themePalette;
     final key = model.dateKey(date);
     final records = model.dailyRecords[key] ?? {};
 
     final scheduledKeys = scheduledItems.map((item) => item.subject.name).toSet();
 
     String statusText = 'Not marked';
-    Color statusColor = AppPalette.slate;
+    Color statusColor = palette.textMuted;
     String? masterAction;
 
     if (scheduledKeys.isNotEmpty) {
@@ -384,7 +403,7 @@ class _DayStatusCard extends StatelessWidget {
       if (relevantRecords.length == scheduledKeys.length) {
         if (relevantRecords.every((e) => e.value == 'present')) {
           statusText = 'Present';
-          statusColor = AppPalette.green;
+          statusColor = palette.isDark ? palette.accent : AppPalette.green;
           masterAction = 'present';
         } else if (relevantRecords.every((e) => e.value == 'absent')) {
           statusText = 'Absent';
@@ -422,13 +441,13 @@ class _DayStatusCard extends StatelessWidget {
                 Text(
                   'Day status:',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppPalette.slate,
+                        color: palette.textSecondary,
                       ),
                 ),
                 Text(
                   statusText,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: AppPalette.ink,
+                        color: palette.textPrimary,
                         fontWeight: FontWeight.w700,
                       ),
                 ),
@@ -458,7 +477,7 @@ class _DayStatusCard extends StatelessWidget {
           _DayActionButton(
             icon: Icons.check_circle,
             label: 'Att',
-            color: masterAction == 'present' ? AppPalette.green : null,
+            color: masterAction == 'present' ? (palette.isDark ? palette.accent : AppPalette.green) : null,
             onTap: () => model.markAllAttendance('present', date, targetItems: scheduledItems),
           ),
         ],
@@ -482,9 +501,16 @@ class _DayActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? AppPalette.slate;
-    return GestureDetector(
-      onTap: onTap,
+    final model = AttendXScope.of(context);
+    final palette = model.themePalette;
+    final c = color ?? palette.textMuted;
+
+    return BouncyTap(
+      scaleDown: 0.88,
+      onTap: () {
+        AppHaptics.selection();
+        onTap();
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -492,10 +518,11 @@ class _DayActionButton extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: c,
-                  fontSize: 9,
-                ),
+            style: TextStyle(
+              color: c,
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
@@ -523,6 +550,7 @@ class _SubjectCardState extends State<_SubjectCard> {
     final currentAction = widget.model.getActionForDate(widget.item.subject, widget.markDate);
 
     if (currentAction == action) {
+      AppHaptics.selection();
       // Toggle off
       int pDelta = 0;
       int tDelta = 0;
@@ -535,6 +563,14 @@ class _SubjectCardState extends State<_SubjectCard> {
         widget.model.adjustAttendance(widget.item.subject, presentDelta: 0, totalDelta: 0, action: 'clear', date: widget.markDate);
       }
       return;
+    }
+
+    if (action == 'present') {
+      AppHaptics.light();
+    } else if (action == 'absent') {
+      AppHaptics.medium();
+    } else {
+      AppHaptics.selection();
     }
 
     int pDelta = 0;
@@ -618,10 +654,11 @@ class _SubjectCardState extends State<_SubjectCard> {
                         margin: const EdgeInsets.symmetric(vertical: 2),
                       ),
                       Text(
-                        '${widget.model.minimumAttendance.round()}',
+                        '${subject.present}/${subject.total}',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               color: subject.statusColor,
                               fontWeight: FontWeight.w700,
+                              fontSize: 10,
                             ),
                       ),
                     ],
@@ -634,30 +671,32 @@ class _SubjectCardState extends State<_SubjectCard> {
                     children: [
                       Row(
                         children: [
-                          Flexible(
+                          Expanded(
                             child: Text(
                               subject.name,
                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: AppPalette.ink,
-                                    fontWeight: FontWeight.w800,
+                                    fontWeight: FontWeight.w900,
                                   ),
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           if (widget.item.isExtra) ...[
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: AppPalette.green.withValues(alpha: 0.15),
+                                color: widget.model.themePalette.accent.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: AppPalette.green.withValues(alpha: 0.3)),
+                                border: Border.all(
+                                  color: widget.model.themePalette.accent.withValues(alpha: 0.3),
+                                ),
                               ),
-                              child: const Text(
+                              child: Text(
                                 'EXTRA',
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: AppPalette.green,
+                                  color: widget.model.themePalette.accent,
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
@@ -669,7 +708,7 @@ class _SubjectCardState extends State<_SubjectCard> {
                       Text(
                         missText,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppPalette.slate,
+                              color: widget.model.themePalette.textSecondary,
                             ),
                       ),
                     ],
@@ -681,8 +720,9 @@ class _SubjectCardState extends State<_SubjectCard> {
             Row(
               children: [
                 if (widget.item.isExtra)
-                  GestureDetector(
+                  BouncyTap(
                     onTap: () {
+                      AppHaptics.medium();
                       widget.model.removeExtraLecture(
                         date: widget.markDate,
                         subject: subject,
@@ -729,7 +769,7 @@ class _SubjectCardState extends State<_SubjectCard> {
                 _SubjectActionIcon(
                   icon: Icons.check_circle,
                   isSelected: currentAction == 'present',
-                  color: currentAction == 'present' ? AppPalette.green : null,
+                  color: currentAction == 'present' ? (widget.model.isDarkTheme ? widget.model.themePalette.accent : AppPalette.green) : null,
                   isCheckmark: true,
                   onTap: () => _markAction('present'),
                 ),
@@ -759,21 +799,34 @@ class _SubjectActionIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? (isSelected ? AppPalette.ink : AppPalette.slate);
-    return GestureDetector(
+    final model = AttendXScope.of(context);
+    final palette = model.themePalette;
+    final c = color ?? (isSelected ? palette.textPrimary : palette.textMuted);
+
+    return BouncyTap(
+      scaleDown: 0.88,
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        width: 36,
-        height: 36,
+        width: 38,
+        height: 38,
         decoration: BoxDecoration(
           color: isSelected
-              ? c.withValues(alpha: 0.15)
+              ? c.withValues(alpha: 0.18)
               : Colors.transparent,
           shape: BoxShape.circle,
           border: Border.all(
-            color: isSelected ? c.withValues(alpha: 0.5) : AppPalette.glassLine,
+            color: isSelected ? c.withValues(alpha: 0.6) : palette.cardBorder,
+            width: isSelected ? 1.5 : 1.0,
           ),
+          boxShadow: [
+            if (isSelected)
+              BoxShadow(
+                color: c.withValues(alpha: 0.25),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+          ],
         ),
         child: Icon(icon, color: c, size: 20),
       ),
@@ -928,41 +981,94 @@ class TodayClassTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedPressable(
+    final model = AttendXScope.of(context);
+    final palette = model.themePalette;
+
+    return BouncyTap(
       child: RunningTrailBorder(
         trailColor: item.subject.color,
-        borderRadius: 24.0,
-        strokeWidth: 2.0,
+        borderRadius: 22.0,
+        strokeWidth: 1.5,
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(24),
+            color: palette.isDark ? const Color(0xFF18140D) : Colors.white.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(22),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.5),
+              color: palette.isDark
+                  ? item.subject.color.withValues(alpha: 0.35)
+                  : palette.cardBorder,
+              width: 1.0,
             ),
+            boxShadow: [
+              if (palette.isDark)
+                BoxShadow(
+                  color: item.subject.color.withValues(alpha: 0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+            ],
           ),
           child: Row(
             children: [
-              SubjectIcon(subject: item.subject, size: 50),
+              SubjectIcon(subject: item.subject, size: 44),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      item.subject.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w900,
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            item.subject.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: palette.textPrimary,
+                                ),
                           ),
+                        ),
+                        if (item.isExtra || item.subject.isLab) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: (item.isExtra ? palette.accent : AppPalette.purple).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: (item.isExtra ? palette.accent : AppPalette.purple).withValues(alpha: 0.35),
+                              ),
+                            ),
+                            child: Text(
+                              item.isExtra ? 'EXTRA' : 'LAB',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: item.isExtra ? palette.accent : AppPalette.purple,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
+                    if (item.time.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        item.time,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: palette.textSecondary,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
-              IconButton(
-                onPressed: () async {
+              BouncyTap(
+                onTap: () async {
+                  AppHaptics.medium();
                   if (onDelete != null) {
                     onDelete!();
                   } else {
@@ -979,7 +1085,14 @@ class TodayClassTile extends StatelessWidget {
                     }
                   }
                 },
-                icon: Icon(CupertinoIcons.delete, color: AppPalette.red.withValues(alpha: 0.6), size: 18),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppPalette.red.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(CupertinoIcons.delete, color: AppPalette.red, size: 16),
+                ),
               ),
             ],
           ),
@@ -1312,18 +1425,20 @@ class _AttendXCalendarDialogState extends State<AttendXCalendarDialog> {
       'July', 'August', 'September', 'October', 'November', 'December'
     ][_viewMonth.month - 1];
 
+    final palette = widget.model.themePalette;
+
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
+          color: palette.isDark ? const Color(0xFF16130E) : Colors.white,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppPalette.glassLine),
+          border: Border.all(color: palette.cardBorder),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.18),
+              color: Colors.black.withValues(alpha: 0.35),
               blurRadius: 32,
               offset: const Offset(0, 16),
             ),
@@ -1338,18 +1453,18 @@ class _AttendXCalendarDialogState extends State<AttendXCalendarDialog> {
                 children: [
                   IconButton(
                     onPressed: _prevMonth,
-                    icon: const Icon(CupertinoIcons.left_chevron, size: 20),
+                    icon: Icon(CupertinoIcons.left_chevron, size: 20, color: palette.textPrimary),
                   ),
                   Text(
                     '$monthName ${_viewMonth.year}',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppPalette.ink,
+                          color: palette.textPrimary,
                           fontWeight: FontWeight.w800,
                         ),
                   ),
                   IconButton(
                     onPressed: _nextMonth,
-                    icon: const Icon(CupertinoIcons.right_chevron, size: 20),
+                    icon: Icon(CupertinoIcons.right_chevron, size: 20, color: palette.textPrimary),
                   ),
                 ],
               ),
@@ -1361,7 +1476,7 @@ class _AttendXCalendarDialogState extends State<AttendXCalendarDialog> {
                     child: Text(
                       d,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppPalette.slate,
+                            color: palette.textMuted,
                             fontWeight: FontWeight.bold,
                           ),
                     ),
@@ -1393,12 +1508,12 @@ class _AttendXCalendarDialogState extends State<AttendXCalendarDialog> {
                     child: Container(
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppPalette.ink
-                            : const Color(0xFFF1F5F9),
+                            ? palette.accent
+                            : (palette.isDark ? const Color(0xFF221E17) : const Color(0xFFF1F5F9)),
                         borderRadius: BorderRadius.circular(10),
                         border: isToday
-                            ? Border.all(color: AppPalette.green, width: 2)
-                            : Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                            ? Border.all(color: palette.accent, width: 2)
+                            : Border.all(color: palette.cardBorder.withValues(alpha: 0.3)),
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -1406,7 +1521,9 @@ class _AttendXCalendarDialogState extends State<AttendXCalendarDialog> {
                           Text(
                             '$dayNum',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: isSelected ? Colors.white : AppPalette.ink,
+                                  color: isSelected
+                                      ? (palette.isDark ? Colors.black : Colors.white)
+                                      : palette.textPrimary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
                                 ),
@@ -1417,7 +1534,9 @@ class _AttendXCalendarDialogState extends State<AttendXCalendarDialog> {
                               width: 5,
                               height: 5,
                               decoration: BoxDecoration(
-                                color: isSelected ? Colors.white : statusColor,
+                                color: isSelected
+                                    ? (palette.isDark ? Colors.black : Colors.white)
+                                    : statusColor,
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -1486,39 +1605,46 @@ class ProgressRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveStroke = strokeWidth ?? (size * 0.085).clamp(4.0, 12.0);
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned.fill(
-            child: CustomPaint(
-              painter: _ProgressRingPainter(
-                progress: value.clamp(0.0, 1.0),
-                color: color,
-                strokeWidth: effectiveStroke,
-                backgroundColor: color.withValues(alpha: 0.12),
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: value.clamp(0.0, 1.0)),
+      duration: const Duration(milliseconds: 650),
+      curve: Curves.easeOutCubic,
+      builder: (context, animatedValue, _) {
+        return SizedBox(
+          width: size,
+          height: size,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _ProgressRingPainter(
+                    progress: animatedValue,
+                    color: color,
+                    strokeWidth: effectiveStroke,
+                    backgroundColor: color.withValues(alpha: 0.14),
+                  ),
+                ),
               ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.all(effectiveStroke + 2),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                label,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w900,
-                      fontSize: size * 0.24,
-                    ),
+              Padding(
+                padding: EdgeInsets.all(effectiveStroke + 2),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: color,
+                          fontWeight: FontWeight.w900,
+                          fontSize: size * 0.24,
+                        ),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -1550,8 +1676,15 @@ class _ProgressRingPainter extends CustomPainter {
       ..strokeWidth = strokeWidth;
     canvas.drawCircle(center, radius, bgPaint);
 
-    // Progress arc
+    // Progress arc with glow
     if (progress > 0) {
+      final glowPaint = Paint()
+        ..color = color.withValues(alpha: 0.35)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth + 2.5
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.0)
+        ..strokeCap = StrokeCap.round;
+
       final fgPaint = Paint()
         ..color = color
         ..style = PaintingStyle.stroke
@@ -1560,13 +1693,10 @@ class _ProgressRingPainter extends CustomPainter {
 
       const startAngle = -math.pi / 2;
       final sweepAngle = 2 * math.pi * progress;
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        startAngle,
-        sweepAngle,
-        false,
-        fgPaint,
-      );
+      final rect = Rect.fromCircle(center: center, radius: radius);
+
+      canvas.drawArc(rect, startAngle, sweepAngle, false, glowPaint);
+      canvas.drawArc(rect, startAngle, sweepAngle, false, fgPaint);
     }
   }
 
