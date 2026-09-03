@@ -477,7 +477,7 @@ class _DayStatusCard extends StatelessWidget {
           _DayActionButton(
             icon: Icons.check_circle,
             label: 'Att',
-            color: masterAction == 'present' ? (palette.isDark ? palette.accent : AppPalette.green) : null,
+            color: masterAction == 'present' ? AppPalette.green : null,
             onTap: () => model.markAllAttendance('present', date, targetItems: scheduledItems),
           ),
         ],
@@ -508,7 +508,7 @@ class _DayActionButton extends StatelessWidget {
     return BouncyTap(
       scaleDown: 0.88,
       onTap: () {
-        AppHaptics.selection();
+        AppHaptics.heavy();
         onTap();
       },
       child: Column(
@@ -550,7 +550,7 @@ class _SubjectCardState extends State<_SubjectCard> {
     final currentAction = widget.model.getActionForDate(widget.item.subject, widget.markDate);
 
     if (currentAction == action) {
-      AppHaptics.selection();
+      AppHaptics.heavy();
       // Toggle off
       int pDelta = 0;
       int tDelta = 0;
@@ -565,13 +565,7 @@ class _SubjectCardState extends State<_SubjectCard> {
       return;
     }
 
-    if (action == 'present') {
-      AppHaptics.light();
-    } else if (action == 'absent') {
-      AppHaptics.medium();
-    } else {
-      AppHaptics.selection();
-    }
+    AppHaptics.heavy();
 
     int pDelta = 0;
     int tDelta = 0;
@@ -769,7 +763,7 @@ class _SubjectCardState extends State<_SubjectCard> {
                 _SubjectActionIcon(
                   icon: Icons.check_circle,
                   isSelected: currentAction == 'present',
-                  color: currentAction == 'present' ? (widget.model.isDarkTheme ? widget.model.themePalette.accent : AppPalette.green) : null,
+                  color: currentAction == 'present' ? AppPalette.green : null,
                   isCheckmark: true,
                   onTap: () => _markAction('present'),
                 ),

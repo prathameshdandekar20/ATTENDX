@@ -7,10 +7,11 @@ import '../models/subject.dart';
 import '../models/attendance_log.dart';
 
 class AppHaptics {
-  static void light() => HapticFeedback.lightImpact();
-  static void medium() => HapticFeedback.mediumImpact();
-  static void selection() => HapticFeedback.selectionClick();
+  static void light() => HapticFeedback.mediumImpact();
+  static void medium() => HapticFeedback.heavyImpact();
+  static void selection() => HapticFeedback.mediumImpact();
   static void heavy() => HapticFeedback.heavyImpact();
+  static void strong() => HapticFeedback.heavyImpact();
 }
 
 class BouncyTap extends StatefulWidget {

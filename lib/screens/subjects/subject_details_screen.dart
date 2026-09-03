@@ -172,7 +172,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                         _FilterChip(
                           label: 'Present ($presentCount)',
                           isSelected: _selectedFilter == 'present',
-                          color: model.themePalette.isDark ? model.themePalette.accent : AppPalette.green,
+                          color: AppPalette.green,
                           onTap: () => setState(() => _selectedFilter = 'present'),
                         ),
                         const SizedBox(width: 8),
@@ -195,16 +195,16 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                   const SizedBox(height: 14),
                   if (filteredRecords.isEmpty)
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Center(
-                        child: Text(
-                          _selectedFilter == 'all'
-                              ? 'No attendance recorded for ${subject.name} yet.'
-                              : 'No $_selectedFilter records found.',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: model.themePalette.textSecondary),
-                        ),
-                      ),
-                    )
+                       padding: const EdgeInsets.symmetric(vertical: 16),
+                       child: Center(
+                         child: Text(
+                           _selectedFilter == 'all'
+                               ? 'No attendance recorded for ${subject.name} yet.'
+                               : 'No $_selectedFilter records found.',
+                           style: Theme.of(context).textTheme.bodySmall?.copyWith(color: model.themePalette.textSecondary),
+                         ),
+                       ),
+                     )
                   else
                     ListView.separated(
                       shrinkWrap: true,
@@ -220,7 +220,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                         String statusLabel;
 
                         if (record.status == 'present') {
-                          statusColor = model.themePalette.isDark ? model.themePalette.accent : AppPalette.green;
+                          statusColor = AppPalette.green;
                           statusIcon = CupertinoIcons.check_mark_circled_solid;
                           statusLabel = 'Present';
                         } else if (record.status == 'absent') {
